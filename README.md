@@ -37,6 +37,8 @@ The second parameter specifies wether the model will be saved (in `models/CNN_d.
 |      acc | 98.79% | 97.88% | 99.64% | 99.35% |
 | test_acc | 97.23% | 97.24% | 98.95% | 99.10% |
 
+*(These results are far from being state of the art, and will be improved in the future)*
+
 ## 3. Network attacks
 
 ### Description of the attack method
@@ -84,7 +86,11 @@ minimal_attack(img_id, p=2, a=0, b=4, lr=0.005)
 - texlive, ghostscript and dvipng (for a fancy matplotlib latex-style prining)
 - tqdm
 
+## TODO
+
+- [ ] Experiment with other network architectures (AlexNet, Inception...)
+- [ ] Experiment with CapsNets
 
 ## Suggestions
 
-Feel free to message me any comments or suggestions ! I'd live to hear some critics or feedback on this project.
+Feel free to message me any comments or suggestions ! I'd love to hear some critics or feedback on this project.
