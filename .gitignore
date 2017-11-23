@@ -1,0 +1,6 @@
+*.zip
+*.pyc
+*.patch
+data
+logs
+__pycache__
