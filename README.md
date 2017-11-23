@@ -25,7 +25,7 @@ Note that the training parameters (`lr`, `epochs` and `batch_size`) and function
 **For example, to train the CNN model with dropout, you just need to run:**
 
 ```sh
-python train.py CNN True
+python train.py CNN_d True
 ```
 
 The second parameter specifies wether the model will be saved (in `models/` if it is the case).
@@ -53,7 +53,7 @@ A network attack takes in parameters the id `img_id` of the image to attack, the
 **To attack a previously trained and saved model, load the `attack.py` file:**
 
 ```sh
-python -i attack.py CNN_d
+python -i attack.py MLP
 ```
 
 Multiple functions are then available.
