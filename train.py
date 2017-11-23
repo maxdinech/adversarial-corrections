@@ -1,9 +1,9 @@
 """
-Entraînement de reseaux PyTorch sur MNIST.
+Networks training.
 
-Syntaxe : python -i train.py CNN
+Syntax : python -i train.py CNN False
 
-Les réseaux sont définis dans architectures.py
+The networks are defined in architectures.py
 """
 
 
@@ -16,44 +16,43 @@ import mnist_loader
 import architectures
 
 
-# Paramètres passés
-nom_modele = sys.argv[1]
-enregistrement = ((sys.argv + ["False"])[2] == "True")
+# Passed parameters
+model_class = sys.argv[1]
+save_model = ((sys.argv + ["False"])[2] == "True")  # Default: save_model=False
 
-# Hyperparamètres
-# ---------------
+
+# Hyperparameters
 nb_train = 50000
 nb_test = 10000
 
 
-# Importation du modèle, déplacement sur GPU si possible
-model = getattr(architectures, nom_modele)()
+# Model creation
+model = getattr(architectures, model_class)()
 if torch.cuda.is_available():
     model = model.cuda()
 
 
-# Import des paramètres du modèle
+# Loads model hyperparameters
 batch_size = model.batch_size
 lr = model.lr
 epochs = model.epochs
 
-# Import des fonctions du modèle
+# Loads model functions
 loss_fn = model.loss_fn
 optimizer = model.optimizer
 
 
-# Fonction de création de variable sur GPU si possible, CPU sinon
-def to_Var(x, requires_grad=False):
+# Returns a Variable containing `tensor`, on the GPU if CUDA is available.
+def to_Var(tensor, requires_grad=False):
     if torch.cuda.is_available():
-        x = x.cuda()
-    return Variable(x, requires_grad=requires_grad)
+        tensor = tensor.cuda()
+    return Variable(tensor, requires_grad=requires_grad)
 
 
-# Chargement des bases de données
+# Loads the train and test databases.
 train_images, train_labels = mnist_loader.train(nb_train)
 test_images, test_labels = mnist_loader.test(nb_test)
 
-# Création du DataLoader
 train_loader = DataLoader(TensorDataset(train_images, train_labels),
                           batch_size=batch_size,
                           shuffle=True)
@@ -61,7 +60,7 @@ train_loader = DataLoader(TensorDataset(train_images, train_labels),
 nb_batches = len(train_loader)
 
 
-# Fonction de calcul de la précision du réseau
+# Computes the acccuracy of the model.
 def accuracy(images, labels):
     data = TensorDataset(images, labels)
     loader = DataLoader(data, batch_size=1000, shuffle=False)
@@ -73,8 +72,8 @@ def accuracy(images, labels):
     return 100 * compteur / len(images)
 
 
-# Fonction de calcul de l'erreur sur beaucoup de données d'un coup
-# (pour éviter les dépassements de capacité)
+# Computes the loss of the model.
+# (computing the loss mini-match after mini-batch avoids memory overload)
 def big_loss(images, labels):
     data = TensorDataset(images, labels)
     loader = DataLoader(data, batch_size=1000, shuffle=False)
@@ -82,24 +81,24 @@ def big_loss(images, labels):
     for (x, y) in loader:
         y, y_pred = to_Var(y), model.eval()(to_Var(x))
         compteur += len(x) * loss_fn(y_pred, y).data[0]
-        # .double() parce que sinon on a un ByteTensor de sum() limitée à 256 !
+        # .double() to avoid being limited at 256 (ByteTensor) !
     return compteur / len(images)
 
 
-# ENTRAINEMENT DU RÉSEAU
-# ----------------------
+# NETWORK TRAINING
+# ----------------
 
-# Affichage des HP
-print("Train sur {} éléments, test sur {} éléments.".format(nb_train, nb_test))
+# Prints the hyperparameters before the training.
+print("Train on {} samples, test on {} samples.".format(nb_train, nb_test))
 print("Epochs: {}, Batch size: {}".format(epochs, batch_size))
 optimizer_name = type(optimizer).__name__
-print("Optimiseur: {}, lr: {}".format(optimizer_name, lr))
-nb_parametres = sum(param.numel() for param in model.parameters())
-print("Paramètres: {}".format(nb_parametres))
-print("Enregistrement : {}\n".format(enregistrement))
+print("Optimizer: {}, lr: {}".format(optimizer_name, lr))
+nb_parameters = sum(param.numel() for param in model.parameters())
+print("Parameters: {}".format(nb_parameters))
+print("Save model : {}\n".format(save_model))
 
 
-# Barre de progression
+# Custom progress bar.
 def bar(data, e):
     epoch = "Epoch {}/{}".format(e+1, epochs)
     left = "{desc}: {percentage:3.0f}%"
@@ -108,66 +107,36 @@ def bar(data, e):
     return tqdm(data, desc=epoch, ncols=100, unit='b', bar_format=bar_format)
 
 
-# Boucle principale sur chaque epoch
+# Main loop over each epoch
 for e in range(epochs):
 
-    # Boucle secondaire sur chaque mini-batch
+    # Secondary loop over each mini-batch
     for (x, y) in bar(train_loader, e):
 
-        # Propagation dans le réseau et calcul de l'erreur
+        # Computes the network output
         y_pred = model.train()(to_Var(x))
         loss = loss_fn(y_pred, to_Var(y))
 
-        # Ajustement des paramètres
+        # Optimizer step
         model.zero_grad()
         loss.backward()
         optimizer.step()
 
-    if (e + 1) % 10 == 0:
-        # Calcul de l'erreur totale et de la précision sur la base train.
-        acc = accuracy(train_images, train_labels)
-        loss = big_loss(train_images, train_labels)
+    # Calculates accuracy and loss on the train database.
+    acc = accuracy(train_images, train_labels)
+    loss = big_loss(train_images, train_labels)
 
-        # Calcul de l'erreur totale et de la précision sur la base test.
-        test_acc = accuracy(test_images, test_labels)
-        test_loss = big_loss(test_images, test_labels)
+    # Calculates accuracy and loss on the test database.
+    test_acc = accuracy(test_images, test_labels)
+    test_loss = big_loss(test_images, test_labels)
 
-        print("  └-> loss: {:6.4f} - acc: {:5.2f}%  ─  "
-              .format(loss, acc), end='')
-        print("test_loss: {:6.4f} - test_acc: {:5.2f}%"
-              .format(test_loss, test_acc))
-
-
-# Enregistrement du réseau
-if enregistrement:
-    torch.save(model, 'models/' + nom_modele + '.pt')
+    # Prints the loss and accuracies at the end of each epoch.
+    print("  └-> loss: {:6.4f} - acc: {:5.2f}%  ─  "
+          .format(loss, acc), end='')
+    print("test_loss: {:6.4f} - test_acc: {:5.2f}%"
+          .format(test_loss, test_acc))
 
 
-def ascii_print(image):
-    image = image.view(28, 28)
-    for ligne in image:
-        for pix in ligne:
-            print(2*" ░▒▓█"[int(pix*4.999) % 5], end='')
-        print('')
-
-
-def prediction(n):
-    img = test_images[n].view(1, 1, 28, 28)
-    pred = model.eval()(img)
-    print("prédiction :", pred.max(1)[1].data[0])
-    ascii_print(img.data)
-
-
-def prediction_img(img):
-    pred = model.eval()(img)
-    print("prédiction :", pred.max(0)[1].data[0])
-    ascii_print(img.data)
-
-
-def affichages():
-    import random
-    import time
-    while True:
-        print("\033[H\033[J")
-        prediction(random.randrange(1000))
-        time.sleep(0.7)
+# Saves the network if stated.
+if save_model:
+    torch.save(model, 'models/' + model_class + '.pt')

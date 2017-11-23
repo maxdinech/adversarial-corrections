@@ -1,25 +1,19 @@
 """
-Crée automatiquement si besoin et charge la base de données MNIST
+Automatically creates and loads the MNIST database.
 
-La base de données est découpée en train, test et val (voir README.md)
+The database is split between train (50000 samples), test and val (10000
+samples each).
 """
 
 
 import torch
 import torchvision.datasets as dsets
 import torchvision.transforms as transforms
-import os.path
 import shutil
+import os.path
 
 
-# Utilise automatiquement le GPU si CUDA est disponible
-if torch.cuda.is_available():
-    dtype = torch.cuda.FloatTensor
-else:
-    dtype = torch.FloatTensor
-
-
-# Création des fichiers train.pt, test.pt et val.pt de MNIST
+# Creates the files `train.pt`, `test.pt` and `val.pt` from MNIST.
 def create():
     dsets.MNIST(root='data/',
                 train=True,
@@ -38,13 +32,19 @@ def create():
     shutil.rmtree('data/processed')
 
 
-def load(nom, nb_elements):
-    url = "data/" + nom + ".pt"
+# Loads a specified database.
+def load(db_name, nb_elements):
+    url = "data/" + db_name + ".pt"
     if not os.path.exists(url):
         create()
     images, labels = torch.load(url)
     images, labels = images[:nb_elements], labels[:nb_elements]
-    images = images.type(dtype) / 255
+    if torch.cuda.is_available():
+        images = images.type(torch.cuda.FloatTensor) / 255
+        labels = labels.type(torch.cuda.LongTensor)
+    else:
+        images = images.type(torch.FloatTensor) / 255
+        labels = labels.type(torch.LongTensor)
     images = images.view(len(images), 1, 28, 28)
     return images, labels
 
