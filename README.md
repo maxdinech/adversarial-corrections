@@ -39,11 +39,11 @@ The second parameter specifies wether the model will be saved (in `models/CNN_d.
 
 ### Different ways to attack the network
 
-The attacks are somewhat similar to a network training: we make a gradient descent on a 28x28 Variable `r` so that model.forward(image + r) gives a wrong prediction. More formally:
+The attacks are somewhat similar to a network training: we make a gradient descent on a 28x28 Variable `r` so that model.forward(image + r) gives a wrong prediction. More formally, we are looking for a disturbance r such that:
 
-<a href="https://www.codecogs.com/eqnedit.php?latex=\dpi{120}&space;\small&space;\begin{cases}&space;\Vert&space;r&space;\Vert_p&space;=&space;norm\\&space;Img&space;&plus;&space;r&space;\in&space;[0,&space;1]\\&space;Pred(img&plus;r)&space;\neq&space;Pred(Img)\\&space;\end{cases}" target="_blank"><img src="https://latex.codecogs.com/png.latex?\dpi{120}&space;\small&space;\begin{cases}&space;\Vert&space;r&space;\Vert_p&space;=&space;norm\\&space;Img&space;&plus;&space;r&space;\in&space;[0,&space;1]\\&space;Pred(img&plus;r)&space;\neq&space;Pred(Img)\\&space;\end{cases}" title="\small \begin{cases} \Vert r \Vert_p = norm\\ Img + r \in [0, 1]\\ Pred(img+r) \neq Pred(Img)\\ \end{cases}" /></a>
+<a href="https://www.codecogs.com/eqnedit.php?latex=\dpi{120}&space;\small&space;\begin{cases}&space;\Vert&space;r&space;\Vert_p&space;=&space;div\\&space;Img&space;&plus;&space;r&space;\in&space;[0,&space;1]\\&space;Pred(img&plus;r)&space;\neq&space;Pred(Img)\\&space;\end{cases}" target="_blank"><img src="https://latex.codecogs.com/png.latex?\dpi{120}&space;\small&space;\begin{cases}&space;\Vert&space;r&space;\Vert_p&space;=&space;div\\&space;Img&space;&plus;&space;r&space;\in&space;[0,&space;1]\\&space;Pred(img&plus;r)&space;\neq&space;Pred(Img)\\&space;\end{cases}" title="\small \begin{cases} \Vert r \Vert_p = norm\\ Img + r \in [0, 1]\\ Pred(img+r) \neq Pred(Img)\\ \end{cases}" /></a>
 
-A network attack takes in parameters the `id` of the image to attack, the euclidean norm `p` used to determine the norm of the perturbation `r`, the norm value of the perturbation that will be used during the attack, and the learning rate of the gradient descent.
+A network attack takes in parameters the id `img_id` of the image to attack, the euclidian norm `p` used to determine the norm of the perturbation `r`, the norm value `div` of the perturbation, and the learning rate `lr` of the gradient descent.
 
 
 To attack a previously trained and saved model, load the attack.py file, for instance:
@@ -54,7 +54,15 @@ python -i attack.py CNN_d
 
 Multiple functions are then available.
 
-- `attack()` 
+```
+attack(img_id, lr=0.005, div=0.2, p=2)
+```
+
+This function runs the attack described above.
+
+```
+minimal_attack()
+```
 
 ---
 
