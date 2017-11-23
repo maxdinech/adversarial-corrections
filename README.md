@@ -37,11 +37,11 @@ The second parameter specifies wether the model will be saved (in `models/CNN_d.
 
 ## 3. Network attacks
 
-### Different ways to attack the network
+### Description of the attack method
 
-The attacks are somewhat similar to a network training: we make a gradient descent on a 28x28 Variable `r` so that model.forward(image + r) gives a wrong prediction. More formally, we are looking for a disturbance r such that:
+Attacking a network is somewhat similar to training one: it consists in a gradient descent on a 28x28 Variable `r` so that model.forward(image + r) gives a wrong prediction. More formally, we are looking for a disturbance r such that:
 
-<a href="https://www.codecogs.com/eqnedit.php?latex=\dpi{120}&space;\small&space;\begin{cases}&space;\Vert&space;r&space;\Vert_p&space;=&space;div\\&space;Img&space;&plus;&space;r&space;\in&space;[0,&space;1]\\&space;Pred(img&plus;r)&space;\neq&space;Pred(Img)\\&space;\end{cases}" target="_blank"><img src="https://latex.codecogs.com/png.latex?\dpi{120}&space;\small&space;\begin{cases}&space;\Vert&space;r&space;\Vert_p&space;=&space;div\\&space;Img&space;&plus;&space;r&space;\in&space;[0,&space;1]\\&space;Pred(img&plus;r)&space;\neq&space;Pred(Img)\\&space;\end{cases}" title="\small \begin{cases} \Vert r \Vert_p = norm\\ Img + r \in [0, 1]\\ Pred(img+r) \neq Pred(Img)\\ \end{cases}" /></a>
+<a href="https://www.codecogs.com/eqnedit.php?latex=\dpi{120}&space;\small&space;\begin{cases}&space;\Vert&space;r&space;\Vert_p&space;=&space;div\\&space;Img&space;&plus;&space;r&space;\in&space;[0,&space;1]\\&space;Pred(img&plus;r)&space;\neq&space;Pred(Img)\\&space;\end{cases}" target="_blank"><img src="https://latex.codecogs.com/png.latex?\dpi{120}&space;\small&space;\begin{cases}&space;\Vert&space;r&space;\Vert_p&space;=&space;div\\&space;Img&space;&plus;&space;r&space;\in&space;[0,&space;1]\\&space;Pred(Img&plus;r)&space;\neq&space;Pred(Img)\\&space;\end{cases}" title="\small \begin{cases} \Vert r \Vert_p = norm\\ Img + r \in [0, 1]\\ Pred(Img+r) \neq Pred(Img)\\ \end{cases}" /></a>
 
 A network attack takes in parameters the id `img_id` of the image to attack, the euclidian norm `p` used to determine the norm of the perturbation `r`, the norm value `div` of the perturbation, and the learning rate `lr` of the gradient descent.
 
@@ -54,17 +54,22 @@ python -i attack.py CNN_d
 
 Multiple functions are then available.
 
-```
+The `attack()` function runs the attack described above. When the attack fails (no wrong prediction after 1000 steps), the function returns `(False, image, r, image_adv)`, otherwise it returns `(True, image, r, adv)`.
+
+```Python
 attack(img_id, lr=0.005, div=0.2, p=2)
 ```
 
-This function runs the attack described above.
+The `minimal_attack()` function searches the minimal value `div` between `a` and `b` (using a dichotomy) such that the perturbation still fools the model, then output and saves (in `docs/images/attack_results/`) a graph that displays the original image, the perturbation and the modified image.
 
+```Python
+minimal_attack(img_id, p=2, a=0, b=4, lr=0.005)
 ```
-minimal_attack()
-```
+
+![Attack result example](../docs/images/attack_example.png)
 
 ---
+
 
 ## Project requirements
 
@@ -74,3 +79,8 @@ minimal_attack()
 - matplotlib
 - texlive, ghostscript and dvipng (for a fancy matplotlib latex-style prining)
 - tqdm
+
+
+## Suggestions
+
+Feel free to message me any comments or suggestions ! I'd live to hear some critics or feedback on this project.
