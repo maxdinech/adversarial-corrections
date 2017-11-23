@@ -66,7 +66,7 @@ The `minimal_attack()` function searches the minimal value `div` between `a` and
 minimal_attack(img_id, p=2, a=0, b=4, lr=0.005)
 ```
 
-![Attack result example](../docs/images/attack_example.png)
+![Attack result example](../docs/images/attack_results/attack_example.png)
 
 ---
 
