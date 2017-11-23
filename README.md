@@ -2,6 +2,8 @@
 
 The aim of this school project is to show the vulnerabilities of classifier networks to adverse examples and to explore different protection techniques. 
 
+![Attack result example](docs/images/attack_results/attack_example.png)
+
 ## Getting Started
 
 ### 1. Creating the MNIST dataset
@@ -14,7 +16,7 @@ Originally, when loading MNIST, PyTorch divieds the dataset between train.pt and
 
 The networks are defined in `architectures.py`. For the moment, the following networks are available : a MLP, a CNN, and their dropout versions (MLP_d and CNN_d). Other networks will be added.
 
-![CNN with 2 convolutions](../docs/images/CNN_small.png)
+![CNN with 2 convolutions](docs/images/CNN_small.png)
 
 *The CNN model.*
 
@@ -66,7 +68,9 @@ The `minimal_attack()` function searches the minimal value `div` between `a` and
 minimal_attack(img_id, p=2, a=0, b=4, lr=0.005)
 ```
 
-![Attack result example](../docs/images/attack_results/attack_example.png)
+![Attack result example](docs/images/attack_results/attack_example.png)
+
+*A minimal adversarial example for the MLP network*
 
 ---
 
