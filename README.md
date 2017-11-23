@@ -22,7 +22,7 @@ The networks are defined in `architectures.py`. For the moment, the following ne
 
 Note that the training parameters (`lr`, `epochs` and `batch_size`) and functions (`loss_fn` and `optimizer`) are included in the class definition of the model: it makes switching between models easier and makes it possible to use a universal training script : `train.py`.
 
-For example, to train the CNN model with dropout, you just need to run:
+**For example, to train the CNN model with dropout, you just need to run:**
 
 ```
 python train.py CNN True
@@ -50,7 +50,7 @@ Attacking a network is somewhat similar to training one: it consists in a gradie
 A network attack takes in parameters the id `img_id` of the image to attack, the euclidian norm `p` used to determine the norm of the perturbation `r`, the norm value `div` of the perturbation, and the learning rate `lr` of the gradient descent.
 
 
-To attack a previously trained and saved model, load the `attack.py` file:
+**To attack a previously trained and saved model, load the `attack.py` file:**
 
 ```
 python -i attack.py CNN_d
