@@ -59,7 +59,7 @@ def compare(image1, r, image2, img_id, p, div):
     plt.axis('off')
     fig.tight_layout(pad=1)
     plt.subplots_adjust(left=0.05, right=0.95, top=0.80, bottom=0.05)
-    nom_image = "resultats/" + model_name + "_adv{}_n{}.png".format(img_id, p)
+    nom_image = "docs/images/attack_results" + model_name + "_adv{}_n{}.png".format(img_id, p)
     plt.savefig(nom_image, transparent=True)
     plt.show()
 
