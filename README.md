@@ -1,100 +1,68 @@
-# Classification et attaques de MNIST
+# Building, attacking and improving classifiers for MNIST
 
-## 1. La base de données MNIST
+The aim of this school project is to show the vulnerabilities of classifier networks to adverse examples and to explore different protection techniques. 
 
-### MNIST
+## Getting Started
 
-Il s'agit d'une base de donées de chiffres manuscrits : 50.000 qui servent d'entrainement, 10.000 qui servent de test et 10.000 qui servent de validation.
+### 1. Creating the MNIST dataset
 
-> :heavy_exclamation_mark: Les données de validation ne sont à utiliser qu'à la toute fin, par souci d'honnêteté intellectuelle. (Pour éviter de faire de l'overfitting des HP sur les images de validations !)
+The MNIST dataset is automatically downloaded and divided into three parts : train.pt, containing 50.000 samples, test.pt and val.pt containing 10.000 samples each.
 
-Les images sont des tenseurs de la forme `1x28x28` (le 1 représente les couches de couleur), et les labels sont représentés par des scalaires entiers. La base de données est contenue dans les fichiers `train.py`, `test.py` et `val.py`, chacun sous la forme d'un couple de tenseurs `(images, labels)`.
+Originally, when loading MNIST, PyTorch divieds the dataset between train.pt and test.pt, but a third file val.pt allows to test a model performance after fitting its hyperparameters using the test dataset.
 
-### Importation avec mnist_loader.py
+### 2. Network training
 
-Ce fichier permet de créer automatiquement si nécessaire et d'importer facilement les bases de données `train`, `test` et `val`, de la manière suivante :
+The networks are defined in `architectures.py`. For the moment, the following networks are available : a MLP, a CNN, and their dropout versions (MLP_d and CNN_d). Other networks will be added.
 
-```Python
-images, labels = mnist_loader.train(nb_éléments)
+![CNN with 2 convolutions](../docs/images/CNN_small.png)
+
+*The CNN model.*
+
+Note that the training parameters (`lr`, `epochs` and `batch_size`) and functions (`loss_fn` and `optimizer`) are included in the class definition of the model: it makes switching between models easier and makes it possible to use a universal training file : `train.py`
+
+For example, to train the CNN model with dropout, you just need to run:
+
+```
+python train.py CNN True
 ```
 
-Même syntaxe pour `test` et `val`
+The second parameter specifies wether the model will be saved (in `models/CNN_d.pt` if it is the case).
 
+#### Some results:
 
-
-## 2. Définition et entrainement des modèles
-
-### Description des modèles
-
-#### MLP à deux couches cachées (`MLP` et `MLP_d`)
-
-Couches :
-
-- **fc:** 748 -> 128 (ReLU)
-- (**Dropout:** p=0.4)
-- **fc:** 128 -> 128 (ReLU)
-- (**Dropout:** p=0.4)
-- **fc:** 128 -> 10 (softmax)
-
-Hyperparamètres :
-
-- Epochs : 30
-- batch_size = 32
-- Optimiseur : Adam(lr = 3e-4)
-
-#### CNN à deux convolutions (`CNN` et `CNN_d`)
-
-![CNN à deux convolution](../docs/images/CNN2_small.png)
-
-Couches :
-
-- **Conv:** noyau 5x5, 1 -> 20 layers
-- **MaxPool:** noyau 2x2
-- **Conv:** noyau 3x3, 20 -> 40 layers
-- **MaxPool:** noyau 2x2
-- (**Dropout:** p=0.4)
-- **fc:** 5x5x40 -> 120 (ReLU)
-- (**Dropout:** p=0.4)
-- **fc:** 120 -> 10 (softmax)
-
-Hyperparamètres :
-
-- Epochs : 30
-- batch_size = 32
-- Optimiseur : Adam(lr = 3e-4)
-
-
-### Définition des modèles : `architectures.py`
-
-Les modèles utilisés sont entièrement définis par leurs classes, dans `architectures.py`.
-
-On ajoute à chaque modèle ses hyperparamètres (`lr`, `epochs` et `batch_size`), sa fonction d'erreur (`loss_fn`) et son optimiseur (`optimizer`), ce qui permet de jongler beaucoup plus facilement entre les modèles.
-
-
-### Entrainement des modèles : `train.py`
-
-Le fichier `train.py` prend en paramètre le nom de la classe de modèle à entraîner, et un booléen qui décide de l'enregistrement du modèle au format `.pt` dans `modeles/`. Par exemple la commande suivante :
-
-    python train.py CNN True
-
-### Résultats obtenus
-
-|   Réseau |  MLP   | MLP_d  |  CNN   | CNN_d  |
+|  Network |  MLP   | MLP_d  |  CNN   | CNN_d  |
 |---------:|:------:|:------:|:------:|:------:|
 |      acc | 98.79% | 97.88% | 99.64% | 99.35% |
 | test_acc | 97.23% | 97.24% | 98.95% | 99.10% |
 
+## 3. Network attacks
 
-## 2. Attaques adversaires
+### Different ways to attack the network
 
-### Description des attaques
+The attacks are somewhat similar to a network training: we make a gradient descent on a 28x28 Variable `r` so that model.forward(image + r) gives a wrong prediction. More formally:
 
-...
+<a href="https://www.codecogs.com/eqnedit.php?latex=\dpi{120}&space;\large&space;\begin{cases}&space;\Vert&space;r&space;\Vert_p&space;=&space;norm\\&space;Img&space;&plus;&space;r&space;\in&space;[0,&space;1]\\&space;Pred(img&plus;r)&space;\neq&space;Pred(Img)\\&space;\end{cases}" target="_blank"><img src="https://latex.codecogs.com/png.latex?\dpi{120}&space;\large&space;\begin{cases}&space;\Vert&space;r&space;\Vert_p&space;=&space;norm\\&space;Img&space;&plus;&space;r&space;\in&space;[0,&space;1]\\&space;Pred(img&plus;r)&space;\neq&space;Pred(Img)\\&space;\end{cases}" title="\large \begin{cases} \Vert r \Vert_p = norm\\ Img + r \in [0, 1]\\ Pred(img+r) \neq Pred(Img)\\ \end{cases}" /></a>
 
-### Résultats obtenus
+A network attack takes in parameters the `id` of the image to attack, the euclidean norm `p` used to determine the norm of the perturbation `r`, the norm value of the perturbation that will be used during the attack, and the learning rate of the gradient descent.
 
-...
 
-### Évaluer la faiblesse d'un réseau
+To attack a previously trained and saved model, load the attack.py file, for instance:
 
--> On trace les distribution des normes minimales pour perturber chaque image dans une même base de données, selon des normes diférentes. On compare les résultats obtenus contre différents réseaux.
+```
+python -i attack.py CNN_d
+```
+
+Multiple functions are then available.
+
+- `attack()` 
+
+---
+
+## Project requirements
+
+- Python 3
+- PyTorch
+- numpy
+- matplotlib
+- texlive, ghostscript and dvipng (for a fancy matplotlib latex-style prining)
+- tqdm
