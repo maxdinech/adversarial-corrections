@@ -16,10 +16,6 @@ The MNIST dataset is automatically downloaded and divided into three parts : `tr
 
 The networks are defined in `architectures.py`. For the moment, the following networks are available : a MLP, a CNN, and their dropout versions (MLP_d and CNN_d). Other networks will be added in the future.
 
-![CNN with 2 convolutions](docs/images/CNN_small.png)
-
-*The CNN model.*
-
 Note that the training parameters (`lr`, `epochs` and `batch_size`) and functions (`loss_fn` and `optimizer`) are included in the class definition of the model: it makes switching between models easier and makes it possible to use a universal training script : `train.py`.
 
 **For example, to train the CNN model with dropout, you just need to run:**
