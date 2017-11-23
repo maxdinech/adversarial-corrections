@@ -17,7 +17,7 @@ import architectures
 
 
 # Passed parameters
-model_class = sys.argv[1]
+model_name = sys.argv[1]
 save_model = ((sys.argv + ["False"])[2] == "True")  # Default: save_model=False
 
 
@@ -27,7 +27,7 @@ nb_test = 10000
 
 
 # Model creation
-model = getattr(architectures, model_class)()
+model = getattr(architectures, model_name)()
 if torch.cuda.is_available():
     model = model.cuda()
 
@@ -139,4 +139,4 @@ for e in range(epochs):
 
 # Saves the network if stated.
 if save_model:
-    torch.save(model, 'models/' + model_class + '.pt')
+    torch.save(model, 'models/' + model_name + '.pt')
