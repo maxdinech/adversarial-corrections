@@ -15,7 +15,7 @@ class MLP(nn.Module):
         self.epochs = 30
         self.batch_size = 32
         # Network definition
-        self.network = nn.Sequential(
+        self.classifier = nn.Sequential(
             nn.Linear(28 * 28, 120),
             nn.ReLU(inplace=True),
             nn.Linear(120, 120),
@@ -28,8 +28,9 @@ class MLP(nn.Module):
         self.loss_fn = nn.CrossEntropyLoss()
 
     def forward(self, x):
-        x = x.view(len(x), -1)  # Flatten
-        return self.network(x)
+        x = x.view(len(x), -1)  # Flatten  # Flatten
+        x = self.classifier(x)
+        return x
 
 
 class MLP_d(nn.Module):
@@ -40,7 +41,7 @@ class MLP_d(nn.Module):
         self.epochs = 30
         self.batch_size = 32
         # Network definition
-        self.network = nn.Sequential(
+        self.classifier = nn.Sequential(
             nn.Dropout(),
             nn.Linear(28 * 28, 120),
             nn.ReLU(inplace=True),
@@ -56,8 +57,9 @@ class MLP_d(nn.Module):
         self.loss_fn = nn.CrossEntropyLoss()
 
     def forward(self, x):
-        x = x.view(len(x), -1)  # Flatten
-        return self.network(x)
+        x = x.view(len(x), -1)  # Flatten  # Flatten
+        x = self.classifier(x)
+        return x
 
 
 class CNN(nn.Module):
@@ -67,13 +69,15 @@ class CNN(nn.Module):
         self.lr = 2e-4
         self.epochs = 30
         self.batch_size = 32
-        # Network definition
-        self.network = nn.Sequential(
+        self.features = nn.Sequential(
             nn.Conv2d(1, 20, kernel_size=5),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=2),
             nn.Conv2d(20, 40, kernel_size=3),
             nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2)
+        )
+        self.classifier = nn.Sequential(
             nn.Linear(40 * 5 * 5, 120),
             nn.ReLU(inplace=True),
             nn.Linear(120, 10),
@@ -84,7 +88,10 @@ class CNN(nn.Module):
         self.loss_fn = nn.CrossEntropyLoss()
 
     def forward(self, x):
-        return self.network(x)
+        x = self.features(x)
+        x = x.view(len(x), -1)  # Flatten
+        x = self.classifier(x)
+        return x
 
 
 class CNN_d(nn.Module):
@@ -94,12 +101,15 @@ class CNN_d(nn.Module):
         self.lr = 2e-4
         self.epochs = 30
         self.batch_size = 32
-        self.network = nn.Sequential(
+        self.features = nn.Sequential(
             nn.Conv2d(1, 20, kernel_size=5),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=2),
             nn.Conv2d(20, 40, kernel_size=3),
             nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2)
+        )
+        self.classifier = nn.Sequential(
             nn.Dropout(),
             nn.Linear(40 * 5 * 5, 120),
             nn.ReLU(inplace=True),
@@ -112,4 +122,7 @@ class CNN_d(nn.Module):
         self.loss_fn = nn.CrossEntropyLoss()
 
     def forward(self, x):
-        return self.network(x)
+        x = self.features(x)
+        x = x.view(len(x), -1)  # Flatten
+        x = self.classifier(x)
+        return x
