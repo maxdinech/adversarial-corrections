@@ -26,7 +26,7 @@ nb_train = 50000
 nb_test = 10000
 
 
-# Model creation
+# Model instanciation
 model = getattr(architectures, model_name)()
 if torch.cuda.is_available():
     model = model.cuda()
@@ -90,9 +90,9 @@ def big_loss(images, labels):
 
 # Prints the hyperparameters before the training.
 print("Train on {} samples, test on {} samples.".format(nb_train, nb_test))
-print("Epochs: {}, Batch size: {}".format(epochs, batch_size))
+print("Epochs: {}, batch size: {}".format(epochs, batch_size))
 optimizer_name = type(optimizer).__name__
-print("Optimizer: {}, lr: {}".format(optimizer_name, lr))
+print("Optimizer: {}, learning rate: {}".format(optimizer_name, lr))
 nb_parameters = sum(param.numel() for param in model.parameters())
 print("Parameters: {}".format(nb_parameters))
 print("Save model : {}\n".format(save_model))
