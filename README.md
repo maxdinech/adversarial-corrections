@@ -1,7 +1,5 @@
 # Building, attacking and improving classifiers for MNIST
 
-[![HitCount](http://hits.dwyl.io/maxdinech/car-crash.svg)](http://hits.dwyl.io/maxdinech/car-crash)
-
 The aim of this school project is to show the vulnerabilities of classifier networks to adversarial examples and to explore different protection techniques.
 
 ![Attack result example](docs/images/attack_results/attack_example.png)
@@ -92,3 +90,5 @@ minimal_attack(img_id, p=2, a=0, b=4, lr=0.005)
 ## Suggestions
 
 Feel free to message me any comments or suggestions ! I'd love to hear some critics or feedback on this project.
+
+[![HitCount](http://hits.dwyl.io/maxdinech/car-crash.svg)](http://hits.dwyl.io/maxdinech/car-crash)
