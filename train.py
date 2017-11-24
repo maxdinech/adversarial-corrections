@@ -11,6 +11,7 @@ import sys
 import torch
 from torch.autograd import Variable
 from torch.utils.data import DataLoader, TensorDataset
+import matplotlib.pyplot as plt
 from tqdm import tqdm
 import mnist_loader
 import architectures
@@ -108,6 +109,8 @@ def bar(data, e):
 
 
 # Main loop over each epoch
+accuracies, test_accuracies = [], []
+losses, test_losses = [], []
 for e in range(epochs):
 
     # Secondary loop over each mini-batch
@@ -125,12 +128,16 @@ for e in range(epochs):
     # Calculates accuracy and loss on the train database.
     acc = accuracy(train_images, train_labels)
     loss = big_loss(train_images, train_labels)
+    accuracies.append(acc)
+    losses.append(loss)
 
     # Calculates accuracy and loss on the test database.
     test_acc = accuracy(test_images, test_labels)
     test_loss = big_loss(test_images, test_labels)
+    test_accuracies.append(test_acc)
+    test_losses.append(test_loss)
 
-    # Prints the loss and accuracies at the end of each epoch.
+    # Prints the losses and accuracies at the end of each epoch.
     print("  └-> loss: {:6.4f} - acc: {:5.2f}%  ─  "
           .format(loss, acc), end='')
     print("test_loss: {:6.4f} - test_acc: {:5.2f}%"
@@ -140,3 +147,16 @@ for e in range(epochs):
 # Saves the network if stated.
 if save_model:
     torch.save(model, 'models/' + model_name + '.pt')
+    # Saves the accuracies history graph
+    t = list(range(epochs))
+    plt.plot(t, accuracies, 'r')
+    plt.plot(t, test_accuracies, 'b')
+    plt.title("Network training history")
+    plt.legend(["acc", "test_acc"])
+    plt.savefig("models/" + model_name + "_acc.png", transparent=True)
+    # Saves the losses history graph
+    plt.plot(t, losses, 'r')
+    plt.plot(t, test_losses, 'b')
+    plt.title("Network training history")
+    plt.legend(["loss", "test_loss"])
+    plt.savefig("models/" + model_name + "_loss.png", transparent=True)
