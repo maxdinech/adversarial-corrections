@@ -155,6 +155,7 @@ if save_model:
     plt.legend(["acc", "test_acc"])
     plt.savefig("models/" + model_name + "_acc.png", transparent=True)
     # Saves the losses history graph
+    plt.clf()
     plt.plot(t, losses, 'r')
     plt.plot(t, test_losses, 'b')
     plt.title("Network training history")
