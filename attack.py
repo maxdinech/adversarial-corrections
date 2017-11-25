@@ -18,13 +18,6 @@ from matplotlib import rcParams
 model_name = sys.argv[1]
 
 
-# Returns a Variable containing `tensor`, on the GPU if CUDA is available.
-def to_Var(tensor, requires_grad=False):
-    if torch.cuda.is_available():
-        tensor = tensor.cuda()
-    return Variable(tensor, requires_grad=requires_grad)
-
-
 # Loads the model
 try:
     model = torch.load("models/" + model_name + ".pt",
@@ -33,6 +26,13 @@ try:
         model = model.cuda()
 except FileNotFoundError:
     print("No model found")
+
+
+# Returns a Variable containing `tensor`, on the GPU if CUDA is available.
+def to_Var(tensor, requires_grad=False):
+    if torch.cuda.is_available():
+        tensor = tensor.cuda()
+    return Variable(tensor, requires_grad=requires_grad)
 
 
 # Plots and saves the comparison graph
