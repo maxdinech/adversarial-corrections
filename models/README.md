@@ -1,31 +1,31 @@
 # History graphs
 
 ## MLP
-![MLP acc](MLP_acc.png)
+![MLP acc](acc_MLP.png)
 
 **HP modifications:**
 
 ## MLP (Dropout)
-![MLP_d acc](MLP_d_acc.png)
+![MLP_d acc](acc_MLP_d.png)
 
 **HP modifications:**
 
 ## MLP (BatchNorm)
-![MLP_bn acc](MLP_bn_acc.png)
+![MLP_bn acc](acc_MLP_bn.png)
 
 **HP modifications:**
 
 ## CNN
-![CNN acc](CNN_acc.png)
+![CNN acc](acc_CNN.png)
 
 **HP modifications:**
 
 ## CNN (Dropout)
-![CNN_d acc](CNN_d_acc.png)
+![CNN_d acc](acc_CNN_d.png)
 
 **HP modifications:**
 
 ## CNN (BatchNorm)
-![CNN_bn acc](CNN_bn_acc.png)
+![CNN_bn acc](acc_CNN_bn.png)
 
 **HP modifications:**
