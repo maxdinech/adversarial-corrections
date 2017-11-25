@@ -51,12 +51,12 @@ Two ways to do this are implemented:
 
 First, the function `attack_fixed_norm()` implements an algorithm that, given an image from the dataset, computes an acceptable value of `r`, by a gradient descent on the pixels of the perturbation. The loss function is the confidence of the classifier on the real label of the image.
 
-More formally: given a norm value `norm`, we want to find `r` such that:
+More formally: given a norm value `N`, we want to find `r` such that:
 
-<a href="https://www.codecogs.com/eqnedit.php?latex=\dpi{120}&space;\begin{cases}&space;\Vert&space;r&space;\Vert_p&space;=&space;norm\\&space;Img&space;&plus;&space;r&space;\in&space;[0,&space;1]\\&space;\texttt{Prediction(img&plus;r)}&space;\neq&space;\texttt{Prediction(Img)}\\&space;\end{cases}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\dpi{120}&space;\begin{cases}&space;\Vert&space;r&space;\Vert_p&space;=&space;norm\\&space;Img&space;&plus;&space;r&space;\in&space;[0,&space;1]\\&space;\texttt{Prediction(img&plus;r)}&space;\neq&space;\texttt{Prediction(Img)}\\&space;\end{cases}" title="\begin{cases} \Vert r \Vert_p = norm\\ Img + r \in [0, 1]\\ \texttt{Prediction(img+r)} \neq \texttt{Prediction(Img)}\\ \end{cases}" /></a>
+<a href="https://www.codecogs.com/eqnedit.php?latex=\dpi{120}&space;\begin{cases}&space;\Vert&space;r&space;\Vert_p&space;=&space;N\\&space;Img&space;&plus;&space;r&space;\in&space;[0,&space;1]\\&space;\texttt{Prediction(img&plus;r)}&space;\neq&space;\texttt{Prediction(Img)}\\&space;\end{cases}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\dpi{120}&space;\begin{cases}&space;\Vert&space;r&space;\Vert_p&space;=&space;N\\&space;Img&space;&plus;&space;r&space;\in&space;[0,&space;1]\\&space;\texttt{Prediction(img&plus;r)}&space;\neq&space;\texttt{Prediction(Img)}\\&space;\end{cases}" title="\begin{cases} \Vert r \Vert_p = N\\ Img + r \in [0, 1]\\ \texttt{Prediction(img+r)} \neq \texttt{Prediction(Img)}\\ \end{cases}" /></a>
 
 
-Secondly, a dichotomy is performed for values of `norm` in [0, 4], to determine the minimal accepted value that still tricks the network.
+Then, a dichotomy is performed `N` in [0, 4], to determine the minimal accepted value that still tricks the network.
 
 This method experimentally gives the best results, but is painfully slower than the second one.
 
