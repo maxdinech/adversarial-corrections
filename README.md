@@ -47,7 +47,7 @@ Attacking a network is consists in determining a perturbation `r` such that `mod
 
 Two ways to do this are implemented:
 
-#### A. Dichotomy attack
+### A. Dichotomy attack
 
 First, the function `attack_fixed_norm()` implements an algorithm that, given an image from the dataset, computes an acceptable value of `r`, by a gradient descent on the pixels of the perturbation. The loss function is the confidence of the classifier on the real label of the image.
 
