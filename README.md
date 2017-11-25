@@ -39,14 +39,34 @@ The second parameter specifies wether the model will be saved (in `models/` if i
 
 ## 3. Network attacks
 
-### Description of the attack method
+### Finding a minimal perturbation
 
-Attacking a network is somewhat similar to training one: it consists in a gradient descent on a 28x28 Variable `r` so that `model.forward(image + r)` gives a wrong prediction. More formally, we are looking for a perturbation `r` such that:
+Let's call `Prediction` and `Confidence` the functions that respectively gives the digit prediction of the network and the confidence prediction of the network on the real label of the image. To trick a network, we want to determine a sloghtly modified version of the image , `adv_image`, such that `Prediction(adv_image)` is no longer equal to `Prediction(image)`. This is usually done by using `Confidence` as a loss function: The smaller it gets, the less the networks thinks that the modified image still holds its initial digit.
 
-<a href="https://www.codecogs.com/eqnedit.php?latex=\dpi{120}&space;\small&space;\begin{cases}&space;\Vert&space;r&space;\Vert_p&space;=&space;div\\&space;Img&space;&plus;&space;r&space;\in&space;[0,&space;1]\\&space;Pred(img&plus;r)&space;\neq&space;Pred(Img)\\&space;\end{cases}" target="_blank"><img src="https://latex.codecogs.com/png.latex?\dpi{120}&space;\small&space;\begin{cases}&space;\Vert&space;r&space;\Vert_p&space;=&space;div\\&space;Img&space;&plus;&space;r&space;\in&space;[0,&space;1]\\&space;Pred(Img&plus;r)&space;\neq&space;Pred(Img)\\&space;\end{cases}" title="\small \begin{cases} \Vert r \Vert_p = norm\\ Img + r \in [0, 1]\\ Pred(Img+r) \neq Pred(Img)\\ \end{cases}" /></a>
+Attacking a network is consists in determining a perturbation `r` such that `model.forward(image + r)` gives a wrong prediction. We want to find a minimal perturbation for a given Euclidian norm.
 
-A network attack takes in parameters the id `img_id` of the image to attack, the euclidian norm `p` used to determine the norm of the perturbation `r`, the norm value `div` of the perturbation, and the learning rate `lr` of the gradient descent.
+Two ways to do this are implemented:
 
+#### A. Dichotomy attack
+
+First, the function `attack_fixed_norm()` implements an algorithm that, given an image from the dataset, computes an acceptable value of `r`, by a gradient descent on the pixels of the perturbation. The loss function is the confidence of the classifier on the real label of the image.
+
+More formally: given a norm value `norm`, we want to find `r` such that:
+
+<a href="https://www.codecogs.com/eqnedit.php?latex=\dpi{120}&space;\begin{cases}&space;\Vert&space;r&space;\Vert_p&space;=&space;norm\\&space;Img&space;&plus;&space;r&space;\in&space;[0,&space;1]\\&space;\texttt{Prediction(img&plus;r)}&space;\neq&space;\texttt{Prediction(Img)}\\&space;\end{cases}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\dpi{120}&space;\begin{cases}&space;\Vert&space;r&space;\Vert_p&space;=&space;norm\\&space;Img&space;&plus;&space;r&space;\in&space;[0,&space;1]\\&space;\texttt{Prediction(img&plus;r)}&space;\neq&space;\texttt{Prediction(Img)}\\&space;\end{cases}" title="\begin{cases} \Vert r \Vert_p = norm\\ Img + r \in [0, 1]\\ \texttt{Prediction(img+r)} \neq \texttt{Prediction(Img)}\\ \end{cases}" /></a>
+
+
+Secondly, a dichotomy is performed for values of `norm` in [0, 4], to determine the minimal accepted value that still tricks the network.
+
+This method experimentally gives the best results, but is painfully slower than the second one.
+
+### B. Automatic minimal attack
+
+Instead of minimising `norm(r)` step by step, we create a custom loss function such that:
+
+<a href="https://www.codecogs.com/eqnedit.php?latex=\dpi{120}&space;\begin{cases}&space;loss&space;=&space;\texttt{Conf(img&plus;r)}&space;&&space;\text{&space;if&space;}&space;\texttt{Conf(img&plus;r)}&space;\leq&space;0.4&space;\\&space;loss&space;=&space;\texttt{Conf(img&plus;r)}&space;&plus;&space;\Vert&space;r&space;\Vert_p&space;&&space;\text{&space;if&space;}&space;\texttt{Conf(img&plus;r)}&space;\leq&space;0.2&space;\\&space;loss&space;=&space;\Vert&space;r&space;\Vert_p&space;&&space;\text{&space;if&space;}&space;\texttt{Conf(img&plus;r)}&space;\leq&space;0.1&space;\end{cases}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\dpi{120}&space;\begin{cases}&space;loss&space;=&space;\texttt{Conf(img&plus;r)}&space;&&space;\text{&space;if&space;}&space;\texttt{Conf(img&plus;r)}&space;\leq&space;0.4&space;\\&space;loss&space;=&space;\texttt{Conf(img&plus;r)}&space;&plus;&space;\Vert&space;r&space;\Vert_p&space;&&space;\text{&space;if&space;}&space;\texttt{Conf(img&plus;r)}&space;\leq&space;0.2&space;\\&space;loss&space;=&space;\Vert&space;r&space;\Vert_p&space;&&space;\text{&space;if&space;}&space;\texttt{Conf(img&plus;r)}&space;\leq&space;0.1&space;\end{cases}" title="\begin{cases} loss = \texttt{Conf(img+r)} & \text{ if } \texttt{Conf(img+r)} \leq 0.4 \\ loss = \texttt{Conf(img+r)} + \Vert r \Vert_p & \text{ if } \texttt{Conf(img+r)} \leq 0.2 \\ loss = \Vert r \Vert_p & \text{ if } \texttt{Conf(img+r)} \leq 0.1 \end{cases}" /></a> 
+
+### Instructions
 
 **To attack a previously trained and saved model, load the `attack.py` file:**
 
@@ -56,13 +76,19 @@ python -i attack.py MLP
 
 Multiple functions are then available.
 
-- The `attack()` function runs the attack described above. When the attack fails (no wrong prediction after 1000 steps), the function returns `(False, image, r, image_adv)`, otherwise it returns `(True, image, r, adv)`.
+- The `attack()` function runs the attack described in A. When the attack fails (no wrong prediction after 1000 steps), the function returns `(False, image, r, image_adv)`, otherwise it returns `(True, image, r, adv)`.
 
 ```Python
 attack(img_id, lr=0.005, div=0.2, p=2)
 ```
 
-- The `minimal_attack()` function searches the minimal value `div` between `a` and `b` (using a dichotomy) such that the perturbation still fools the model, then output and saves (in `docs/images/attack_results/`) a graph that displays the original image, the perturbation and the modified image.
+- The `minimal_attack_dichotomy()` function searches the minimal value `div` between `a` and `b` (using a dichotomy) such that the perturbation still fools the model, then output and saves (in `docs/images/attack_results/`) a graph that displays the original image, the perturbation and the modified image.
+
+```Python
+minimal_attack(img_id, p=2, a=0, b=4, lr=0.005)
+```
+
+- The `minimal_attack()` function runs the attack described in B.
 
 ```Python
 minimal_attack(img_id, p=2, a=0, b=4, lr=0.005)
