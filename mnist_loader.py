@@ -24,9 +24,9 @@ def create():
     # On divise `training` en `train` et `test`
     images, labels = torch.load('data/processed/training.pt')
     train_images, train_labels = images[:50000], labels[:50000]
-    val_images, val_labels = images[50000:], labels[50000:]
+    test_images, test_labels = images[50000:], labels[50000:]
     torch.save((train_images, train_labels), "data/train.pt")
-    torch.save((val_images, val_labels), "data/test.pt")
+    torch.save((test_images, test_labels), "data/test.pt")
     # On supprimme les dossiers temporaires
     shutil.rmtree('data/raw')
     shutil.rmtree('data/processed')
@@ -34,10 +34,10 @@ def create():
 
 # Loads a specified database.
 def load(db_name, nb_elements):
-    url = "data/" + db_name + ".pt"
-    if not os.path.exists(url):
+    path = "data/" + db_name + ".pt"
+    if not os.path.exists(path):
         create()
-    images, labels = torch.load(url)
+    images, labels = torch.load(path)
     images, labels = images[:nb_elements], labels[:nb_elements]
     if torch.cuda.is_available():
         images = images.type(torch.cuda.FloatTensor) / 255
