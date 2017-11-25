@@ -69,7 +69,7 @@ def accuracy(images, labels):
     for (x, y) in loader:
         y, y_pred = to_Var(y), model.eval()(to_Var(x))
         compteur += (y_pred.max(1)[1] == y).double().data.sum()
-        # .double() parce que sinon on a un ByteTensor de sum() limitée à 256 !
+        # .double(): ByteTensor sums are limited at 256!
     return 100 * compteur / len(images)
 
 
@@ -109,8 +109,8 @@ def bar(data, e):
 
 
 # Main loop over each epoch
-accuracies, test_accuracies = [], []
-losses, test_losses = [], []
+train_accuracies, test_accuracies = [], []
+train_losses, test_losses = [], []
 for e in range(epochs):
 
     # Secondary loop over each mini-batch
@@ -126,10 +126,10 @@ for e in range(epochs):
         optimizer.step()
 
     # Calculates accuracy and loss on the train database.
-    acc = accuracy(train_images, train_labels)
-    loss = big_loss(train_images, train_labels)
-    accuracies.append(acc)
-    losses.append(loss)
+    train_acc = accuracy(train_images, train_labels)
+    train_loss = big_loss(train_images, train_labels)
+    train_accuracies.append(train_acc)
+    train_losses.append(train_loss)
 
     # Calculates accuracy and loss on the test database.
     test_acc = accuracy(test_images, test_labels)
@@ -138,8 +138,8 @@ for e in range(epochs):
     test_losses.append(test_loss)
 
     # Prints the losses and accuracies at the end of each epoch.
-    print("  └-> loss: {:6.4f} - acc: {:5.2f}%  ─  "
-          .format(loss, acc), end='')
+    print("  └-> train_loss: {:6.4f} - train_acc: {:5.2f}%  ─  "
+          .format(train_loss, train_acc), end='')
     print("test_loss: {:6.4f} - test_acc: {:5.2f}%"
           .format(test_loss, test_acc))
 
@@ -149,15 +149,15 @@ if save_model:
     torch.save(model, 'models/' + model_name + '.pt')
     # Saves the accuracies history graph
     t = list(range(epochs))
-    plt.plot(t, accuracies, 'r')
+    plt.plot(t, train_accuracies, 'r')
     plt.plot(t, test_accuracies, 'b')
     plt.title("Network training history")
-    plt.legend(["acc", "test_acc"])
+    plt.legend(["train_acc", "test_acc"])
     plt.savefig("models/" + model_name + "_acc.png", transparent=True)
     # Saves the losses history graph
     plt.clf()
-    plt.plot(t, losses, 'r')
+    plt.plot(t, train_losses, 'r')
     plt.plot(t, test_losses, 'b')
     plt.title("Network training history")
-    plt.legend(["loss", "test_loss"])
+    plt.legend(["train_loss", "test_loss"])
     plt.savefig("models/" + model_name + "_loss.png", transparent=True)
