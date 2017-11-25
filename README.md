@@ -28,14 +28,14 @@ The second parameter specifies wether the model will be saved (in `models/` if i
 
 #### Networks accuracies:
 
-| Network |    acc   | test_acc |
-|--------:|:--------:|:--------:|
-|     MLP |  98.70%  |  97.05%  |
-|   MLP_d |  95.76%  |  96.15%  |
-|  MLP_bn |  99.54%  |  97.99%  |
-|     CNN |  99.62%  |  98.95%  |
-|   CNN_d |  99.00%  |  98.78%  |
-|  CNN_bn |  99.93%  |  99.22%  |
+| Network |   acc    | test_acc | val_acc  |
+|:--------|----------|----------|----------|
+| MLP     |  98.70%  |  97.05%  |  96.92%  |
+| MLP_d   |  95.76%  |  96.15%  |  95.58%  |
+| MLP_bn  |  99.54%  |  97.99%  |  97.77%  |
+| CNN     |  99.62%  |  98.95%  |  99.05%  |
+| CNN_d   |  99.00%  |  98.78%  |  98.99%  |
+| CNN_bn  |  99.93%  |  99.22%  |  99.20%  |
 
 ## 3. Network attacks
 
