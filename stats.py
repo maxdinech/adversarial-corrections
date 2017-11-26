@@ -116,6 +116,8 @@ class Perturbator_B(nn.Module):
         super(Perturbator_B, self).__init__()
         self.p = p
         self.r = nn.Parameter(torch.zeros(1, 1, 28, 28), requires_grad=True)
+        if torch.cuda.is_available:
+            self.r = self.r.cuda()
         self.optimizer = torch.optim.Adam(self.parameters(), lr=lr)
 
     def forward(self, x):
