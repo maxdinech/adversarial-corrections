@@ -78,6 +78,8 @@ def attack_fixed_norm(img_id, N, p=2, lr=1e-3):
     image = load_image(img_id)
     digit = prediction(image).data[0]
     attacker = Perturbator_A(N, p, lr)
+    if torch.cuda.is_available():
+        attacker = attacker.cuda()
     for i in range(1000):
         loss = attacker.loss_fn(image, digit)
         attacker.zero_grad()
@@ -116,8 +118,6 @@ class Perturbator_B(nn.Module):
         super(Perturbator_B, self).__init__()
         self.p = p
         self.r = nn.Parameter(torch.zeros(1, 1, 28, 28), requires_grad=True)
-        if torch.cuda.is_available:
-            self.r = self.r.cuda()
         self.optimizer = torch.optim.Adam(self.parameters(), lr=lr)
 
     def forward(self, x):
@@ -139,6 +139,8 @@ def minimal_attack(img_id, p=2, lr=1e-3):
     image = load_image(img_id)
     digit = prediction(image).data[0]
     attacker = Perturbator_B(p, lr)
+    if torch.cuda.is_available():
+        attacker = attacker.cuda()
     for i in range(500):
         loss = attacker.loss_fn(image, digit)
         attacker.zero_grad()
