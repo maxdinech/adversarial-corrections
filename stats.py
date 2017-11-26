@@ -160,7 +160,6 @@ def minimal_attack_stats(nb):
     failed = 0
     for img_id in tqdm(range(nb)):
         success, N = minimal_attack(img_id)
-        print()
         if success:
             norms.append(N)
         else:
