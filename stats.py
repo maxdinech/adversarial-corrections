@@ -12,6 +12,7 @@ from torch.autograd import Variable
 import mnist_loader
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
+from tqdm import tqdm
 
 
 # Passed parameters
@@ -148,12 +149,7 @@ def minimal_attack(img_id, p=2, lr=1e-3):
         attacker.optimizer.step()
         # Prints results
         adv_image = attacker.forward(image)
-        conf = confidence(adv_image, digit).data[0]
         N = (adv_image - image).norm(p).data[0]
-        print("Step {:4} -- conf: {:0.4f}, norm_{}(r): {:0.10f}"
-              .format(i, conf, p, N), end='\r')
-    adv_image = attacker.forward(image)
-    N = (adv_image - image).norm(p).data[0]
     success = prediction(adv_image).data[0] != digit
     return success, N
 
@@ -162,7 +158,7 @@ def minimal_attack(img_id, p=2, lr=1e-3):
 def minimal_attack_stats(nb):
     norms = []
     failed = 0
-    for img_id in range(nb):
+    for img_id in tqdm(range(nb)):
         success, N = minimal_attack(img_id)
         print()
         if success:
