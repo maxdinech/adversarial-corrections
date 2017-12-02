@@ -146,6 +146,9 @@ for e in range(epochs):
 
 # Saves the network if stated.
 if save_model:
+    file = open('models/results.txt', 'w')
+    file.write("{}: train_acc: {}  -  test_acc: {}"
+               .format(model_name, train_acc, test_acc))
     torch.save(model, 'models/' + model_name + '.pt')
     # Saves the accuracies history graph
     t = list(range(epochs))
