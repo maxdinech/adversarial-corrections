@@ -23,7 +23,7 @@ save_model = ((sys.argv + ["False"])[2] == "True")  # Default: save_model=False
 
 
 # Hyperparameters
-nb_train = 50000
+nb_train = 60000
 nb_test = 10000
 
 

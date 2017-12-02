@@ -13,21 +13,14 @@ import shutil
 import os.path
 
 
-# Creates the files `train.pt`, `test.pt` and `val.pt` from MNIST.
+# Creates the files `train.pt`, and `test.pt` from MNIST.
 def create():
     dsets.MNIST(root='data/',
                 train=True,
                 transform=transforms.ToTensor(),
                 download=True)
-    # On appelle `val` les images de `test`
-    shutil.move('data/processed/test.pt', 'data/val.pt')
-    # On divise `training` en `train` et `test`
-    images, labels = torch.load('data/processed/training.pt')
-    train_images, train_labels = images[:50000], labels[:50000]
-    test_images, test_labels = images[50000:], labels[50000:]
-    torch.save((train_images, train_labels), "data/train.pt")
-    torch.save((test_images, test_labels), "data/test.pt")
-    # On supprimme les dossiers temporaires
+    shutil.move('data/processed/test.pt', 'data/test.pt')
+    shutil.move('data/processed/training.pt', 'data/train.pt')
     shutil.rmtree('data/raw')
     shutil.rmtree('data/processed')
 
@@ -49,8 +42,6 @@ def load(db_name, nb_elements):
     return images, labels
 
 
-train = lambda nb_train=50000: load('train', nb_train)
+train = lambda nb_train=60000: load('train', nb_train)
 
 test = lambda nb_test=10000: load('test', nb_test)
-
-val = lambda nb_val=10000: load('val', nb_val)
