@@ -160,7 +160,7 @@ class CNN_bn(nn.Module):
     def __init__(self):
         super(CNN_bn, self).__init__()
         # Training hyperparameters
-        self.lr = 2e-4
+        self.lr = 1e-4
         self.epochs = 30
         self.batch_size = 32
         self.features = nn.Sequential(
@@ -197,11 +197,13 @@ B: 64 64 -M- 128 128 -M- 256 256 -M- 512 512 -M- 512 512 -M-
 D: 64 64 -M- 128 128 -M- 256 256 256 -M- 512 512 512 -M- 512 512 512 -M-
 E: 64 64 -M- 128 128 -M- 256 256 256 256 -M- 512 512 512 512 -M- 512 512 512 512 -M-
 """
+
+
 class VGG(nn.Module):
     def __init__(self):
         super(VGG, self).__init__()
         # Training hyperparameters
-        self.lr = 2e-4
+        self.lr = 1e-4
         self.epochs = 30
         self.batch_size = 32
         self.features = nn.Sequential(
