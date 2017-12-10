@@ -1,5 +1,7 @@
 # Building, attacking and improving classifiers for MNIST
 
+<p align="center"><img src="https://rawgit.com/maxdinech/mnist-attack/master/svgs/3d05f3da0dc05b06c6dd3283f0079f0b.svg?invert_in_darkmode" align=middle width=119.63456999999998pt height=36.53001pt/></p>
+
 The aim of this school project is to show the vulnerabilities of classifier networks to adversarial examples and to explore different protection techniques.
 
 ![Attack result example](docs/images/attack_result_1.png)
@@ -55,7 +57,7 @@ More formally: given a norm value <img src="https://rawgit.com/maxdinech/mnist-a
 
 <p align="center"><img src="https://rawgit.com/maxdinech/mnist-attack/master/svgs/ec3d1daaccc02ecddcad0aaac3a3f09f.svg?invert_in_darkmode" align=middle width=312.69149999999996pt height=69.041775pt/></p>
 
-Then, a dichotomy is performed for <img src="https://rawgit.com/maxdinech/mnist-attack/master/svgs/f9c4988898e7f532b9f826a75014ed3c.svg?invert_in_darkmode" align=middle width=14.999985000000004pt height=22.46574pt/> in [0, 4], to determine the minimal accepted value that still tricks the network.
+Then, a dichotomy is performed for <img src="https://rawgit.com/maxdinech/mnist-attack/master/svgs/f9c4988898e7f532b9f826a75014ed3c.svg?invert_in_darkmode" align=middle width=14.999985000000004pt height=22.46574pt/> in <img src="https://rawgit.com/maxdinech/mnist-attack/master/svgs/23c53e48c16ac92090d3ed7adb778f1c.svg?invert_in_darkmode" align=middle width=32.87674500000001pt height=24.65759999999998pt/>, to determine the minimal accepted value that still tricks the network.
 
 This method experimentally gives the best results, but is painfully slower than the second one.
 
@@ -117,5 +119,3 @@ minimal_attack(img_id, p=2, a=0, b=4, lr=0.005)
 ## Suggestions
 
 Feel free to message me any comments or suggestions ! I'd love to hear some critics or feedback on this project.
-
-[![HitCount](http://hits.dwyl.io/maxdinech/car-crash.svg)](http://hits.dwyl.io/maxdinech/car-crash)
