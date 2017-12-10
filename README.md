@@ -10,8 +10,6 @@ The aim of this project is to show the vulnerabilities of classifier networks to
 
 The MNIST dataset is automatically downloaded and divided into three parts : `train.pt`, containing 50.000 samples, and `test.pt` and `val.pt` containing 10.000 samples each.
 
-*Note: Originally, when loading the MNIST dataset, PyTorch divides it between `train.pt` and `test.pt`, but using a third file `val.pt` allows to test a model's generalisation without overfitting the hyperparemeters on the validation dataset.*
-
 ### 2. Network training
 
 The networks are defined in `architectures.py`. For the moment, the following networks are available : a `MLP` and a `CNN`, their Dropout versions (`MLP_d` and `CNN_d`), and their BatchNorm versions (`MLP_bn` and `CNN_bn`). Other networks will be added in the future.
