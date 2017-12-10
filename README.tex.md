@@ -1,5 +1,7 @@
 # Building, attacking and improving classifiers for MNIST
 
+$$\sum \int = \int \sum$$
+
 The aim of this school project is to show the vulnerabilities of classifier networks to adversarial examples and to explore different protection techniques.
 
 ![Attack result example](docs/images/attack_result_1.png)
