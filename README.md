@@ -51,7 +51,7 @@ First, the function `attack_fixed_norm()` implements an algorithm that, given an
 
 More formally: given a norm value <img src="https://rawgit.com/maxdinech/mnist-attack/master/svgs/f9c4988898e7f532b9f826a75014ed3c.svg?invert_in_darkmode" align=middle width=14.999985000000004pt height=22.46574pt/>, we want to find <img src="https://rawgit.com/maxdinech/mnist-attack/master/svgs/89f2e0d2d24bcf44db73aab8fc03252c.svg?invert_in_darkmode" align=middle width=7.873024500000003pt height=14.155350000000013pt/> such that:
 
-<p align="center"><img src="https://rawgit.com/maxdinech/mnist-attack/master/svgs/36a6a15a9cb3d928a255fff42737dae2.svg?invert_in_darkmode" align=middle width=304.062pt height=69.041775pt/></p>
+<p align="center"><img src="https://rawgit.com/maxdinech/mnist-attack/master/svgs/873766a68034aff5e434e11d9c431ebf.svg?invert_in_darkmode" align=middle width=312.69149999999996pt height=69.041775pt/></p>
 
 Then, a dichotomy is performed for <img src="https://rawgit.com/maxdinech/mnist-attack/master/svgs/f9c4988898e7f532b9f826a75014ed3c.svg?invert_in_darkmode" align=middle width=14.999985000000004pt height=22.46574pt/> in <img src="https://rawgit.com/maxdinech/mnist-attack/master/svgs/23c53e48c16ac92090d3ed7adb778f1c.svg?invert_in_darkmode" align=middle width=32.87674500000001pt height=24.65759999999998pt/>, to determine the minimal accepted value that still tricks the network.
 
