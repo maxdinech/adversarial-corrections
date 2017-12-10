@@ -1,6 +1,7 @@
 *.zip
 *.pyc
 *.patch
+*.tex.md
 data
 logs
 __pycache__
