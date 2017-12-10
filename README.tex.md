@@ -1,6 +1,6 @@
 # Building, attacking and improving classifiers for MNIST
 
-$$\sum \int \vert \:: \vert = \int \sum$$
+$$\sum \int \vert \: \vert = \int \sum$$
 
 The aim of this school project is to show the vulnerabilities of classifier networks to adversarial examples and to explore different protection techniques.
 
