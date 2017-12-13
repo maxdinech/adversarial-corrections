@@ -1,0 +1,1 @@
+CNN_bn: train_acc: 99.89666666666666  -  test_acc: 99.1
