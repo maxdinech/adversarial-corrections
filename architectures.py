@@ -12,7 +12,7 @@ class MLP(nn.Module):
         super(MLP, self).__init__()
         # Training hyperparameters
         self.lr = 2e-4
-        self.epochs = 30
+        self.epochs = 40
         self.batch_size = 32
         # Network definition
         self.classifier = nn.Sequential(
@@ -38,7 +38,7 @@ class MLP_d(nn.Module):
         super(MLP_d, self).__init__()
         # Training hyperparameters
         self.lr = 2e-4
-        self.epochs = 30
+        self.epochs = 40
         self.batch_size = 32
         # Network definition
         self.classifier = nn.Sequential(
@@ -67,7 +67,7 @@ class MLP_bn(nn.Module):
         super(MLP_bn, self).__init__()
         # Training hyperparameters
         self.lr = 2e-4
-        self.epochs = 30
+        self.epochs = 40
         self.batch_size = 32
         # Network definition
         self.classifier = nn.Sequential(
@@ -95,7 +95,7 @@ class CNN(nn.Module):
         super(CNN, self).__init__()
         # Training hyperparameters
         self.lr = 2e-4
-        self.epochs = 30
+        self.epochs = 40
         self.batch_size = 32
         self.features = nn.Sequential(
             nn.Conv2d(1, 20, kernel_size=5),
@@ -127,7 +127,7 @@ class CNN_d(nn.Module):
         super(CNN_d, self).__init__()
         # Training hyperparameters
         self.lr = 2e-4
-        self.epochs = 30
+        self.epochs = 40
         self.batch_size = 32
         self.features = nn.Sequential(
             nn.Conv2d(1, 20, kernel_size=5),
@@ -161,7 +161,7 @@ class CNN_bn(nn.Module):
         super(CNN_bn, self).__init__()
         # Training hyperparameters
         self.lr = 1e-4
-        self.epochs = 30
+        self.epochs = 40
         self.batch_size = 32
         self.features = nn.Sequential(
             nn.Conv2d(1, 20, kernel_size=5),
@@ -204,7 +204,7 @@ class VGG(nn.Module):
         super(VGG, self).__init__()
         # Training hyperparameters
         self.lr = 1e-4
-        self.epochs = 30
+        self.epochs = 40
         self.batch_size = 32
         self.features = nn.Sequential(
             nn.Conv2d(1, 64, kernel_size=3),
@@ -243,7 +243,7 @@ class VGG_bn(nn.Module):
         super(VGG_bn, self).__init__()
         # Training hyperparameters
         self.lr = 2e-4
-        self.epochs = 30
+        self.epochs = 40
         self.batch_size = 32
         self.features = nn.Sequential(
             nn.Conv2d(1, 64, kernel_size=3),
