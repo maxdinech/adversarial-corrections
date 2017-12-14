@@ -191,14 +191,6 @@ class CNN_bn(nn.Module):
         return x
 
 
-""" Classes de VGG:
-A: 64 -M 128 -M- 256 256 -M- 512 512 -M- 512 512 -M-
-B: 64 64 -M- 128 128 -M- 256 256 -M- 512 512 -M- 512 512 -M-
-D: 64 64 -M- 128 128 -M- 256 256 256 -M- 512 512 512 -M- 512 512 512 -M-
-E: 64 64 -M- 128 128 -M- 256 256 256 256 -M- 512 512 512 512 -M- 512 512 512 512 -M-
-"""
-
-
 class VGG(nn.Module):
     def __init__(self):
         super(VGG, self).__init__()
@@ -225,7 +217,8 @@ class VGG(nn.Module):
             nn.Linear(4096, 4096),
             nn.ReLU(True),
             nn.Dropout(),
-            nn.Linear(4096, 10)
+            nn.Linear(4096, 10),
+            nn.Softmax()
         )
         # Optimizer and loss function
         self.optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
@@ -268,7 +261,8 @@ class VGG_bn(nn.Module):
             nn.Linear(4096, 4096),
             nn.ReLU(True),
             nn.Dropout(),
-            nn.Linear(4096, 10)
+            nn.Linear(4096, 10),
+            nn.Softmax()
         )
         # Optimizer and loss function
         self.optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
