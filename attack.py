@@ -200,11 +200,12 @@ def minimal_attack(image, p=2, lr=1e-3):
     attacker = Perturbator_B(p, lr)
     if torch.cuda.is_available:
         attacker = attacker.cuda()
+    optim = attacker.optimizer
     for i in range(steps):
         loss = attacker.loss_fn(image, digit)
         attacker.zero_grad()
         loss.backward()
-        attacker.optimizer.step()
+        optim.step()
         # Prints results
         adv_image = attacker.forward(image)
         conf = confidence(adv_image, digit).data[0]
