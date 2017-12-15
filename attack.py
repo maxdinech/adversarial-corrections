@@ -14,6 +14,8 @@ import matplotlib.pyplot as plt
 from matplotlib import rcParams
 
 
+torch.cuda.is_available = False
+
 # Passed parameters
 model_name = sys.argv[1]
 
