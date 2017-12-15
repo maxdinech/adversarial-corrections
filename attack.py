@@ -198,6 +198,8 @@ def minimal_attack(image, p=2, lr=1e-3):
     norms, confs = [], []
     digit = prediction(image).data[0]
     attacker = Perturbator_B(p, lr)
+    if torch.cuda.is_available:
+        attacker = attacker.cuda()
     for i in range(steps):
         loss = attacker.loss_fn(image, digit)
         attacker.zero_grad()
