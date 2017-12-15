@@ -13,7 +13,10 @@ from torch.autograd import Variable
 import mnist_loader
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
+from joblib import Parallel, delayed
 
+
+torch.cuda.is_available = lambda: False
 
 # Passed parameters
 model_name = sys.argv[1]
@@ -278,19 +281,19 @@ def attacks():
             minimal_attack(img_id, p)
 
 
+def f(i):
+    image, label = load_image(i), int(load_label(i).data[0])
+    label_pred = int(prediction(image).data[0])
+    est_erreur = label_pred != label
+    _, adv_image, adv_norm, _ = minimal_attack(image)
+    adv_norm = adv_norm[-1]
+    adv_label = int(prediction(adv_image).data[0])
+    err_rattrapee = adv_label == label
+    return((est_erreur, err_rattrapee, adv_norm))
+
+
 def eureka(n):
-    t = []
-    for i in range(n):
-        print("\n", i)
-        image, label = load_image(i), int(load_label(i).data[0])
-        label_pred = int(prediction(image).data[0])
-        est_erreur = label_pred != label
-        _, adv_image, adv_norm, _ = minimal_attack(image)
-        adv_norm = adv_norm[-1]
-        adv_label = int(prediction(adv_image).data[0])
-        err_rattrapee = adv_label == label
-        t.append((est_erreur, err_rattrapee, adv_norm))
-    return t
+    return Parallel(n_jobs=16)(delayed(f)(i) for i in range(n))
 
 
 def gain(t, critere):
@@ -305,10 +308,3 @@ def gain(t, critere):
             if adv_norm < critere:
                 nb_erreurs += 1
     return((nb_erreurs, nb_images))
-
-
-t = eureka(1000)
-x = [i / 100 for i in range(30)]
-y = [gain(t, x_i)[0] for x_i in x]
-plt.plot(x, y)
-plt.show()
