@@ -214,8 +214,8 @@ def minimal_attack(image, p=2, lr=1e-3):
         adv_image = attacker.forward(image)
         conf = confidence(adv_image, digit).data[0]
         N = (adv_image - image).norm(p).data[0]
-        print("Step {:4} -- conf: {:0.4f}, L_{}(r): {:0.10f}"
-              .format(i, conf, p, N), end='\r')
+        # print("Step {:4} -- conf: {:0.4f}, L_{}(r): {:0.10f}"
+        #       .format(i, conf, p, N), end='\r')
         norms.append(N)
         confs.append(conf)
     adv_image = attacker.forward(image)
@@ -289,11 +289,12 @@ def f(i):
     adv_norm = adv_norm[-1]
     adv_label = int(prediction(adv_image).data[0])
     err_rattrapee = adv_label == label
+    print(i)
     return((est_erreur, err_rattrapee, adv_norm))
 
 
 def eureka(n):
-    return Parallel(n_jobs=16)(delayed(f)(i) for i in range(n))
+    return Parallel(n_jobs=16, verbose=16)(delayed(f)(i) for i in range(n))
 
 
 def gain(t, critere):
