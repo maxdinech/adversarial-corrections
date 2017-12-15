@@ -294,7 +294,7 @@ def f(i):
 
 
 def eureka(n):
-    return Parallel(n_jobs=16, verbose=16)(delayed(f)(i) for i in range(n))
+    return Parallel(n_jobs=16)(delayed(f)(i) for i in range(n))
 
 
 def gain(t, critere):
