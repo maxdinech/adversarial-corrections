@@ -6,6 +6,7 @@ Syntax: python -i attack.py CNN
 
 
 import sys
+import random
 import torch
 from torch import nn
 from torch.autograd import Variable
@@ -13,8 +14,6 @@ import mnist_loader
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
 
-
-torch.cuda.is_available = lambda: False
 
 # Passed parameters
 model_name = sys.argv[1]
@@ -183,20 +182,20 @@ class Perturbator_B(nn.Module):
         adv_image = self.forward(image)
         conf = model.eval()(adv_image)[0, digit]
         norm = (adv_image - image).norm(self.p)
-        if (conf <= 0.2).data[0]:
+        if (conf < 0.2).data[0]:
             return norm
-        elif (conf <= 0.3).data[0]:
+        elif (conf < 0.3).data[0]:
             return conf + 5 * norm
-        elif (conf <= 0.4).data[0]:
+        elif (conf < 0.4).data[0]:
             return conf + norm
-        elif (conf <= 0.95).data[0]:
+        elif (conf < 0.95).data[0]:
             return 5 * conf + norm
         else:
             return 5 * conf - norm
 
 
 def minimal_attack(image, p=2, lr=1e-3):
-    steps = 100
+    steps = 200
     norms, confs = [], []
     digit = prediction(image).data[0]
     attacker = Perturbator_B(p, lr)
@@ -233,8 +232,6 @@ def minimal_attack_graph(image_id, p=2, lr=1e-3):
         compare(image_id, image, adv_image, p)
     else:
         print("\nAttack failed")
-
-import random
 
 
 def erreurs(n):
@@ -284,6 +281,7 @@ def attacks():
 def eureka(n):
     t = []
     for i in range(n):
+        print("\n", i)
         image, label = load_image(i), int(load_label(i).data[0])
         label_pred = int(prediction(image).data[0])
         est_erreur = label_pred != label
@@ -306,4 +304,11 @@ def gain(t, critere):
         else:  # Si ce n'était pas une erreur :
             if adv_norm < critere:
                 nb_erreurs += 1
-    print("{}/{}".format(nb_erreurs, nb_images))
+    return((nb_erreurs, nb_images))
+
+
+t = eureka(1000)
+x = [i / 100 for i in range(30)]
+y = [gain(t, x_i)[0] for x_i in x]
+plt.plot(x, y)
+plt.show()
