@@ -18,6 +18,20 @@ from matplotlib import rcParams
 model_name = sys.argv[1]
 
 
+# Loads the database
+images, labels = mnist_loader.test()
+
+
+# Loads the #img_id image from the test database.
+def load_image(img_id):
+    return to_Var(images[img_id].view(1, 1, 28, 28))
+
+
+# Loads the #img_id label from the test database.
+def load_label(img_id):
+    return to_Var(torch.Tensor([labels[img_id]]))
+
+
 # Loads the model
 try:
     model = torch.load("models/" + model_name + ".pt",
@@ -37,6 +51,7 @@ def to_Var(tensor, requires_grad=False):
 
 # Plots and saves the comparison graph
 def compare(img_id, image, adv_image, p):
+    model_name_tex = model_name.replace('_', '\\_')
     r = (adv_image - image)
     image_pred = prediction(image).data[0]
     image_prob = 100 * model.forward(image)[0, image_pred].data[0]
@@ -53,7 +68,7 @@ def compare(img_id, image, adv_image, p):
     ax1 = fig.add_subplot(1, 3, 1)
     ax1.imshow(image.data.view(28, 28).cpu().numpy(), cmap='gray')
     plt.title("\\texttt{{{}(img)}} = {} \\small{{({:0.0f}\\%)}}"
-              .format(model_name, image_pred, image_prob))
+              .format(model_name_tex, image_pred, image_prob))
     plt.axis('off')
     ax2 = fig.add_subplot(1, 3, 2)
     ax2.imshow(r.data.view(28, 28).cpu().numpy(), cmap='RdBu')
@@ -63,7 +78,7 @@ def compare(img_id, image, adv_image, p):
     ax3 = fig.add_subplot(1, 3, 3)
     ax3.imshow(adv_image.data.view(28, 28).cpu().numpy(), cmap='gray')
     plt.title("\\texttt{{{}(img+r)}} = {} \\small{{({:0.0f}\\%)}}"
-              .format(model_name, adv_image_pred, adv_image_prob))
+              .format(model_name_tex, adv_image_pred, adv_image_prob))
     plt.axis('off')
     fig.tight_layout(pad=1)
     plt.subplots_adjust(left=0.05, right=0.95, top=0.80, bottom=0.05)
@@ -76,12 +91,6 @@ def compare(img_id, image, adv_image, p):
 def plot_image(image):
     plt.imshow(image.data.view(28, 28).numpy(), cmap='gray')
     plt.show()
-
-
-# Loads the #img_id image from the train database.
-def load_image(img_id):
-    images, _ = mnist_loader.train(img_id+1)
-    return to_Var(images[img_id].view(1, 1, 28, 28))
 
 
 # Returns the label prediction of an image.
@@ -117,11 +126,12 @@ class Perturbator_A(nn.Module):
 
 
 # Network attack for a fixed norm_p value N.
-def attack_fixed_norm(img_id, N, p=2, lr=1e-3):
+def fixed_norm_attack(img_id, N, p=2, lr=1e-3):
+    steps = 100
     image = load_image(img_id)
     digit = prediction(image).data[0]
     attacker = Perturbator_A(N, p, lr)
-    for i in range(1000):
+    for i in range(steps):
         loss = attacker.loss_fn(image, digit)
         attacker.zero_grad()
         loss.backward()
@@ -130,19 +140,19 @@ def attack_fixed_norm(img_id, N, p=2, lr=1e-3):
         adv_image = attacker.forward(image)
         conf = confidence(adv_image, digit).data[0]
         N_ = (adv_image - image).norm(p).data[0]
-        print("N = {:5.5f}  ->  step {:4}  -  conf: {:0.4f}, norm_{}(r): {:0.4f}"
+        print("N = {:5.5f}  ->  step {:4}  -  conf: {:0.4f}, L_{}(r): {:0.4f}"
               .format(N, i, conf, p, N_), end='\r')
         if prediction(adv_image).data[0] != digit:
             break
-    return (i < 999), image, adv_image
+    return (i < steps - 1), image, adv_image
 
 
 # Searches the minimal div value that fools the network
-def minimal_attack_dichotomy(img_id, p=2, a=0, b=4, lr=0.005):
+def dichotomy_attack(img_id, p=2, a=0, b=8, lr=0.005):
     while b-a >= 0.001:
         c = (a+b)/2
         print()
-        success, image, adv_image = attack_fixed_norm(img_id, c, p, lr)
+        success, image, adv_image = fixed_norm_attack(img_id, c, p, lr)
         if success:
             b = c
             image_, adv_image_ = image, adv_image
@@ -174,19 +184,21 @@ class Perturbator_B(nn.Module):
         if (conf <= 0.2).data[0]:
             return norm
         elif (conf <= 0.3).data[0]:
-            return conf + norm
+            return conf + 5 * norm
         elif (conf <= 0.4).data[0]:
             return conf + norm
+        elif (conf <= 0.95).data[0]:
+            return 5 * conf + norm
         else:
-            return conf
+            return 5 * conf - norm
 
 
-def minimal_attack(img_id, p=2, lr=1e-3):
-    norms, probs = [], []
-    image = load_image(img_id)
+def minimal_attack(image, p=2, lr=1e-3):
+    steps = 100
+    norms, confs = [], []
     digit = prediction(image).data[0]
     attacker = Perturbator_B(p, lr)
-    for i in range(500):
+    for i in range(steps):
         loss = attacker.loss_fn(image, digit)
         attacker.zero_grad()
         loss.backward()
@@ -195,23 +207,98 @@ def minimal_attack(img_id, p=2, lr=1e-3):
         adv_image = attacker.forward(image)
         conf = confidence(adv_image, digit).data[0]
         N = (adv_image - image).norm(p).data[0]
-        print("Step {:4} -- conf: {:0.4f}, norm_{}(r): {:0.10f}"
+        print("Step {:4} -- conf: {:0.4f}, L_{}(r): {:0.10f}"
               .format(i, conf, p, N), end='\r')
         norms.append(N)
-        probs.append(conf)
+        confs.append(conf)
     adv_image = attacker.forward(image)
-    t = list(range(500))
-    plt.plot(t, norms, 'r', t, probs, 'b')
+    success = prediction(adv_image).data[0] != digit
+    return(success, adv_image, norms, confs)
+
+
+def minimal_attack_graph(image_id, p=2, lr=1e-3):
+    image = load_image(image_id)
+    digit = prediction(image).data[0]
+    success, adv_image, norms, confs = minimal_attack(image, p, lr)
+    t = list(range(len(norms)))
+    plt.plot(t, norms, 'r', t, confs, 'b')
     if prediction(adv_image).data[0] != digit:
         print("\nAttack suceeded")
         plt.show()
-        compare(img_id, image, adv_image, p)
+        compare(image_id, image, adv_image, p)
     else:
         print("\nAttack failed")
+
+import random
+
+
+def erreurs(n):
+    i = 0
+    l = len(images)
+    while i < l and n > 0:
+        image, label = load_image(i), load_label(i)
+        if prediction(image).data[0] != label.data[0]:
+            yield i
+            n -= 1
+        i += 1
+
+
+def contre_attaque(image_id):
+    image = load_image(image_id)
+    adv_image = minimal_attack(image)[1]
+    print()
+    adv_adv_image = minimal_attack(adv_image)[1]
+    l1 = prediction(image).data[0]
+    l2 = prediction(adv_image).data[0]
+    l3 = prediction(adv_adv_image).data[0]
+    print("\n", l1, "->", l2, "->", l3, "\n")
+
+
+def contre_attaques():
+    while True:
+        image = load_image(random.randint(0, 9999))
+        adv_image = minimal_attack(image)[1]
+        print()
+        adv_adv_image = minimal_attack(adv_image)[1]
+        print()
+        adv_adv_adv_image = minimal_attack(adv_adv_image)[1]
+        l1 = prediction(image).data[0]
+        l2 = prediction(adv_image).data[0]
+        l3 = prediction(adv_adv_image).data[0]
+        l4 = prediction(adv_adv_adv_image).data[0]
+        print("\n", l1, "->", l2, "->", l3, "->", l4, "\n")
 
 
 # Run multiple attacks
 def attacks():
     for img_id in range(10):
         for p in [2, 3, 5, 10]:
-            attack(img_id, p)
+            minimal_attack(img_id, p)
+
+
+def eureka(n):
+    t = []
+    for i in range(n):
+        image, label = load_image(i), int(load_label(i).data[0])
+        label_pred = int(prediction(image).data[0])
+        est_erreur = label_pred != label
+        _, adv_image, adv_norm, _ = minimal_attack(image)
+        adv_norm = adv_norm[-1]
+        adv_label = int(prediction(adv_image).data[0])
+        err_rattrapee = adv_label == label
+        t.append((est_erreur, err_rattrapee, adv_norm))
+    return t
+
+
+def gain(t, critere):
+    nb_images = len(t)
+    nb_erreurs = 0
+    for i in t:
+        est_erreur, err_rattrapee, adv_norm = i
+        if est_erreur:  # Si c'était une erreur :
+            if not err_rattrapee or adv_norm > critere:
+                nb_erreurs += 1
+        else:  # Si ce n'était pas une erreur :
+            if adv_norm < critere:
+                nb_erreurs += 1
+    print("{}/{}".format(nb_erreurs, nb_images))
