@@ -16,8 +16,6 @@ from matplotlib import rcParams
 from joblib import Parallel, delayed
 
 
-torch.cuda.is_available = lambda: False
-
 # Passed parameters
 model_name = sys.argv[1]
 
@@ -214,8 +212,8 @@ def minimal_attack(image, p=2, lr=1e-3):
         adv_image = attacker.forward(image)
         conf = confidence(adv_image, digit).data[0]
         N = (adv_image - image).norm(p).data[0]
-        # print("Step {:4} -- conf: {:0.4f}, L_{}(r): {:0.10f}"
-        #       .format(i, conf, p, N), end='\r')
+        print("Step {:4} -- conf: {:0.4f}, L_{}(r): {:0.10f}"
+              .format(i, conf, p, N), end='\r')
         norms.append(N)
         confs.append(conf)
     adv_image = attacker.forward(image)
@@ -281,20 +279,19 @@ def attacks():
             minimal_attack(img_id, p)
 
 
-def f(i):
-    image, label = load_image(i), int(load_label(i).data[0])
-    label_pred = int(prediction(image).data[0])
-    est_erreur = label_pred != label
-    _, adv_image, adv_norm, _ = minimal_attack(image)
-    adv_norm = adv_norm[-1]
-    adv_label = int(prediction(adv_image).data[0])
-    err_rattrapee = adv_label == label
-    print(i)
-    return((est_erreur, err_rattrapee, adv_norm))
-
-
 def eureka(n):
-    return Parallel(n_jobs=16)(delayed(f)(i) for i in range(n))
+    t = []
+    for i in range(n):
+        print(i)
+        image, label = load_image(i), int(load_label(i).data[0])
+        label_pred = int(prediction(image).data[0])
+        est_erreur = label_pred != label
+        _, adv_image, adv_norm, _ = minimal_attack(image)
+        adv_norm = adv_norm[-1]
+        adv_label = int(prediction(adv_image).data[0])
+        err_rattrapee = adv_label == label
+        t.append((est_erreur, err_rattrapee, adv_norm))
+    return t
 
 
 def gain(t, critere):
