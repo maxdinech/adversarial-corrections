@@ -181,7 +181,7 @@ class Perturbator_B(nn.Module):
     def loss_fn(self, image, digit):
         adv_image = self.forward(image)
         conf = model.eval()(adv_image)[0, digit]
-        norm = (adv_image - image).norm(self.p)
+        norm = (adv_image - image).pow(self.p).sum()
         if (conf < 0.2).data[0]:
             return norm
         elif (conf < 0.3).data[0]:
