@@ -9,8 +9,8 @@ The networks are defined in architectures.py
 
 import sys
 import torch
-from torch.autograd import Variable
 from torch.utils.data import DataLoader, TensorDataset
+from basics import to_Var
 from tqdm import tqdm
 import mnist_loader
 
@@ -29,17 +29,9 @@ except FileNotFoundError:
     print("No model found")
 
 
-# Returns a Variable containing `tensor`, on the GPU if CUDA is available.
-def to_Var(tensor, requires_grad=False):
-    if torch.cuda.is_available():
-        tensor = tensor.cuda()
-    return Variable(tensor, requires_grad=requires_grad)
-
-
 # Loads the train, test and val databases.
 train_images, train_labels = mnist_loader.train()
 test_images, test_labels = mnist_loader.test()
-val_images, val_labels = mnist_loader.val()
 
 
 # Computes the acccuracy of the model.
@@ -56,9 +48,8 @@ def accuracy(images, labels):
 
 train_acc = accuracy(train_images, train_labels)
 test_acc = accuracy(test_images, test_labels)
-val_acc = accuracy(val_images, val_labels)
 
 
 # Prints the losses and accuracies at the end of each epoch.
-print("train_acc: {:0.2f}%  ─  test_acc: {:0.2f}%  ─  val_acc: {:0.2f}%"
-      .format(train_acc, test_acc, val_acc))
+print("train_acc: {:0.2f}%  ─  test_acc: {:0.2f}%"
+      .format(train_acc, test_acc))

@@ -9,8 +9,8 @@ The networks are defined in architectures.py
 
 import sys
 import torch
-from torch.autograd import Variable
 from torch.utils.data import DataLoader, TensorDataset
+from basics import to_Var
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 import mnist_loader
@@ -43,13 +43,6 @@ loss_fn = model.loss_fn
 optimizer = model.optimizer
 
 
-# Returns a Variable containing `tensor`, on the GPU if CUDA is available.
-def to_Var(tensor, requires_grad=False):
-    if torch.cuda.is_available():
-        tensor = tensor.cuda()
-    return Variable(tensor, requires_grad=requires_grad)
-
-
 # Loads the train and test databases.
 train_images, train_labels = mnist_loader.train(nb_train)
 test_images, test_labels = mnist_loader.test(nb_test)
@@ -65,12 +58,12 @@ nb_batches = len(train_loader)
 def accuracy(images, labels):
     data = TensorDataset(images, labels)
     loader = DataLoader(data, batch_size=1000, shuffle=False)
-    compteur = 0
+    count = 0
     for (x, y) in loader:
         y, y_pred = to_Var(y), model.eval()(to_Var(x))
-        compteur += (y_pred.max(1)[1] == y).double().data.sum()
+        count += (y_pred.max(1)[1] == y).double().data.sum()
         # .double(): ByteTensor sums are limited at 256!
-    return 100 * compteur / len(images)
+    return 100 * count / len(images)
 
 
 # Computes the loss of the model.
@@ -78,12 +71,12 @@ def accuracy(images, labels):
 def big_loss(images, labels):
     data = TensorDataset(images, labels)
     loader = DataLoader(data, batch_size=1000, shuffle=False)
-    compteur = 0
+    count = 0
     for (x, y) in loader:
         y, y_pred = to_Var(y), model.eval()(to_Var(x))
-        compteur += len(x) * loss_fn(y_pred, y).data[0]
+        count += len(x) * loss_fn(y_pred, y).data[0]
         # .double() to avoid being limited at 256 (ByteTensor) !
-    return compteur / len(images)
+    return count / len(images)
 
 
 # NETWORK TRAINING
