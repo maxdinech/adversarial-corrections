@@ -144,5 +144,5 @@ if save_model:
                .format(model_name, train_acc, test_acc))
     torch.save(model, 'models/' + model_name + '.pt')
     # Saves the accs history graph
-    plot.accs(train_accs, test_accs)
+    plot.train_history(train_accs, test_accs)
     plt.savefig("models/" + model_name + ".png", transparent=True)

@@ -53,7 +53,7 @@ def compare(model_name, img_id, p,
 
 
 # Plots the history of a model training
-def training_history(train_accs, test_accs):
+def train_history(train_accs, test_accs):
     rcParams['font.size'] = 12
     t = list(range(len(train_accs)))
     plt.plot(t, train_accs, 'r')
