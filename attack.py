@@ -1,15 +1,14 @@
 """
 Adversarial examples creation against a specified model
 
-Syntax: python -i attack.py CNN
+Syntax: python -i attack.py MODEL
 """
 
 
 import sys
-import random
 import torch
 from torch import nn
-from basics import to_Var
+from basics import to_Var, load_model
 import mnist_loader
 import matplotlib.pyplot as plt
 import plot
@@ -19,13 +18,7 @@ model_name = sys.argv[1]
 
 
 # Loads the model
-try:
-    model = torch.load("models/" + model_name + ".pt",
-                       map_location=lambda storage, loc: storage)
-    if torch.cuda.is_available():
-        model = model.cuda()
-except FileNotFoundError:
-    print("No model found")
+model = load_model(model_name)
 
 
 # Loads the database
@@ -117,6 +110,34 @@ def attack(image, steps=500, p=2, lr=1e-3):
     return(success, adv_image, norms, confs)
 
 
+def attack_break(image, max_steps=500, p=2, lr=1e-3):
+    norms, confs = [], []
+    digit = prediction(image)
+    attacker = Attacker(p, lr)
+    if torch.cuda.is_available():
+        attacker = attacker.cuda()
+    optim = attacker.optimizer
+    adv_image = attacker.forward(image)
+    steps = 0
+    while confidence(adv_image, digit) >= 0.2 and steps < max_steps:
+        steps += 1
+        # Training step
+        loss = attacker.loss_fn(image, digit)
+        attacker.zero_grad()
+        loss.backward()
+        optim.step()
+        # Prints results
+        adv_image = attacker.forward(image)
+        conf = confidence(adv_image, digit)
+        norm = (adv_image - image).norm(p).data[0]
+        print("Step {:4} -- conf: {:0.4f}, L_{}(r): {:0.10f}"
+              .format(steps, conf, p, norm), end='\r')
+        norms.append(norm)
+        confs.append(conf)
+    print()
+    return(steps, adv_image, norms, confs)
+
+
 def attack_graph(image_id, steps=500, p=2, lr=1e-3):
     image = load_image(image_id)
     success, adv_image, norms, confs = attack(image, steps, p, lr)
@@ -134,6 +155,21 @@ def attack_graph(image_id, steps=500, p=2, lr=1e-3):
         plt.show()
     else:
         print("\nAttack failed")
+
+
+def attack_break_graph(image_id, max_steps=500, p=2, lr=1e-3):
+    image = load_image(image_id)
+    success, adv_image, norms, confs = attack_break(image, max_steps, p, lr)
+    plot.norm_and_conf(norms, confs)
+    plt.show()
+    image_pred = prediction(image)
+    image_conf = confidence(image, image_pred)
+    adv_image_pred = prediction(adv_image)
+    adv_image_conf = confidence(adv_image, adv_image_pred)
+    plt.compare(model_name, image_id, p,
+                image, image_pred, image_conf,
+                adv_image, adv_image_pred, adv_image_conf)
+    plt.show()
 
 
 def multiple_attacks_graph(list, steps=500, p=2, lr=1e-3):
@@ -165,6 +201,10 @@ def resistances(image_id, steps):
     return (norms[-1], max(norms))
 
 
+def resistance_min(image_id, max_steps):
+    return attack_break(load_image(image_id), max_steps)[0]
+
+
 # STATS FUNCTIONS
 # ---------------
 
@@ -188,3 +228,20 @@ def resistances_lists(list, steps):
         L_res_N += [res_N]
         L_res_max += [res_max]
     return (L_res_N, L_res_max)
+
+
+# AVERSARIAL COUNTER-ATTACKS
+# --------------------------
+
+# Tests if the label obtained by the adversarial counter-attack is
+# the true one.
+def counter_attack(image_id, max_steps):
+    image = load_image(image_id)
+    label = load_label(image_id)
+    adv_image = attack_break(image, max_steps)[1]
+    adv_label = prediction(adv_image)
+    return adv_label == label
+
+
+def counter_attacks(list, max_steps):
+    return [counter_attack(i, max_steps) for i in list]

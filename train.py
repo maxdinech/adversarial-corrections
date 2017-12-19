@@ -1,20 +1,21 @@
 """
 Networks training.
 
-Syntax : python -i train.py CNN False
+Syntax : python train.py MODEL bool
 
-The networks are defined in architectures.py
+If bool=True, the trained model is saved in models/
+
+The models architectures are defined in architectures.py
 """
 
 
 import sys
 import torch
 from torch.utils.data import DataLoader, TensorDataset
-from basics import to_Var
+from basics import to_Var, load_architecture
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 import mnist_loader
-import architectures
 
 
 # Passed parameters
@@ -22,15 +23,13 @@ model_name = sys.argv[1]
 save_model = ((sys.argv + ["False"])[2] == "True")  # Default: save_model=False
 
 
-# Hyperparameters
-nb_train = 60000
+# Sizes of the train and test databases
+nb_train = 50000
 nb_test = 10000
 
 
 # Model instanciation
-model = getattr(architectures, model_name)()
-if torch.cuda.is_available():
-    model = model.cuda()
+model = load_architecture(model_name)
 
 
 # Loads model hyperparameters
