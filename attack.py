@@ -174,16 +174,6 @@ def attack_break_graph(image_id, max_steps=500, p=2, lr=1e-3):
     plt.show()
 
 
-def multiple_attacks_graph(list, steps=500, p=2, lr=1e-3):
-    plt.clf()
-    for image_id in list:
-        image = load_image(image_id)
-        success, adv_image, norms, confs = attack(image, steps, p, lr)
-        plot.attack_history(norms, confs)
-    plt.savefig("/attack_results/multiple.png", transparent=True)
-    plt.show()
-
-
 # RESISTANCE FONCTIONS
 # --------------------
 
@@ -212,6 +202,16 @@ def resistances(image_id, steps):
     return (res_N, res_max, res_min)
 
 
+def resistances_lists(list, steps):
+    L_res_N, L_res_max, L_res_min = [], [], []
+    for image_id in list:
+        res_N, res_max, res_min = resistances(image_id, steps)
+        L_res_N += [res_N]
+        L_res_max += [res_max]
+        L_res_min += [res_min]
+    return (L_res_N, L_res_max, L_res_min)
+
+
 # STATS FUNCTIONS
 # ---------------
 
@@ -228,18 +228,9 @@ def histogram(values, delimiters):
     return counts
 
 
-def resistances_lists(list, steps):
-    L_res_N, L_res_max, L_res_min = [], [], []
-    for image_id in list:
-        res_N, res_max, res_min = resistances(image_id, steps)
-        L_res_N += [res_N]
-        L_res_max += [res_max]
-        L_res_min += [res_min]
-    return (L_res_N, L_res_max, L_res_min)
-
-
 # AVERSARIAL COUNTER-ATTACKS
 # --------------------------
+
 
 # Tests if the label obtained by the adversarial counter-attack is
 # the true one.
@@ -251,5 +242,5 @@ def counter_attack(image_id, max_steps):
     return adv_label == label
 
 
-def counter_attacks(list, max_steps):
+def counter_attacks_list(list, max_steps):
     return [counter_attack(i, max_steps) for i in list]
