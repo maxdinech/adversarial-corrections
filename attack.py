@@ -198,7 +198,7 @@ def resistances(image_id, steps):
     confs = attack_result[3]
     res_N = norms[-1]
     res_max = max(norms)
-    res_min = next((c for c in confs if c <= 0.2), steps)
+    res_min = next((i for i, c in enumerate(confs) if c <= 0.2), steps)
     return (res_N, res_max, res_min)
 
 
