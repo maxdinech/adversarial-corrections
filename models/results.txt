@@ -1,1 +1,0 @@
-CNN_bn: train_acc: 99.89666666666666  -  test_acc: 99.1VGG_bn: train_acc: 99.97833333333334  -  test_acc: 99.46VGG: train_acc: 99.96666666666667  -  test_acc: 99.25VGG: train_acc: 99.76833333333333  -  test_acc: 99.31
