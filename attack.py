@@ -197,14 +197,19 @@ def resistance_max(image_id, steps):
     return max(norms)
 
 
-# Returns both the max-resistance and the N-resistance
-def resistances(image_id, steps):
-    norms = attack(load_image(image_id), steps)[2]
-    return (norms[-1], max(norms))
-
-
 def resistance_min(image_id, max_steps):
     return attack_break(load_image(image_id), max_steps)[0]
+
+
+# Computes the N-resistance, max_resistance and min_resistance in a single pass
+def resistances(image_id, steps):
+    attack_result = attack(load_image(image_id), steps)
+    norms = attack_result[2]
+    confs = attack_result[3]
+    res_N = norms[-1]
+    res_max = max(norms)
+    res_min = next((c for c in confs if c <= 0.2), steps)
+    return (res_N, res_max, res_min)
 
 
 # STATS FUNCTIONS
@@ -224,12 +229,13 @@ def histogram(values, delimiters):
 
 
 def resistances_lists(list, steps):
-    L_res_N, L_res_max = [], []
+    L_res_N, L_res_max, L_res_min = [], [], []
     for image_id in list:
-        res_N, res_max = resistances(image_id, steps)
+        res_N, res_max, res_min = resistances(image_id, steps)
         L_res_N += [res_N]
         L_res_max += [res_max]
-    return (L_res_N, L_res_max)
+        L_res_min += [res_min]
+    return (L_res_N, L_res_max, L_res_min)
 
 
 # AVERSARIAL COUNTER-ATTACKS
