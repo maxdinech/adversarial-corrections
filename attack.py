@@ -141,7 +141,7 @@ def attack_break(image, max_steps=500, p=2, lr=1e-3):
 def attack_graph(image_id, steps=500, p=2, lr=1e-3):
     image = load_image(image_id)
     success, adv_image, norms, confs = attack(image, steps, p, lr)
-    plot.norm_and_conf(norms, confs)
+    plot.attack_history(norms, confs)
     plt.show()
     if success:
         print("\nAttack suceeded")
@@ -152,6 +152,8 @@ def attack_graph(image_id, steps=500, p=2, lr=1e-3):
         plt.compare(model_name, image_id, p,
                     image, image_pred, image_conf,
                     adv_image, adv_image_pred, adv_image_conf)
+        image_name = model_name + "_adv{}_n{}.png".format(image_id, p)
+        plt.savefig("attack_results/" + image_name, transparent=True)
         plt.show()
     else:
         print("\nAttack failed")
@@ -160,7 +162,7 @@ def attack_graph(image_id, steps=500, p=2, lr=1e-3):
 def attack_break_graph(image_id, max_steps=500, p=2, lr=1e-3):
     image = load_image(image_id)
     success, adv_image, norms, confs = attack_break(image, max_steps, p, lr)
-    plot.norm_and_conf(norms, confs)
+    plot.attack_history(norms, confs)
     plt.show()
     image_pred = prediction(image)
     image_conf = confidence(image, image_pred)
@@ -177,8 +179,8 @@ def multiple_attacks_graph(list, steps=500, p=2, lr=1e-3):
     for image_id in list:
         image = load_image(image_id)
         success, adv_image, norms, confs = attack(image, steps, p, lr)
-        plot.norm_and_conf(norms, confs)
-    # plt.savefig("../car-crash/docs/images/attack.png", transparent=True)
+        plot.attack_history(norms, confs)
+    plt.savefig("/attack_results/multiple.png", transparent=True)
     plt.show()
 
 

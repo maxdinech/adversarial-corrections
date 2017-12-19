@@ -7,13 +7,18 @@ import matplotlib.pyplot as plt
 from matplotlib import rcParams
 
 
-# Plots an image
+rcParams['text.usetex'] = True
+rcParams['text.latex.unicode'] = True
+rcParams['font.family'] = "serif"
+rcParams['font.serif'] = "cm"
+
+
+# Plots an image (Variable)
 def plot_image(image):
     plt.imshow(image.data.view(28, 28).numpy(), cmap='gray')
-    plt.show()
 
 
-# Plots and saves the comparison graph
+# Plots and saves the comparison graph of an adversarial image
 def compare(model_name, img_id, p,
             image, image_pred, image_conf,
             adv_image, adv_image_pred, adv_image_conf):
@@ -21,11 +26,7 @@ def compare(model_name, img_id, p,
     r = (adv_image - image)
     norm = r.norm(p).data[0]
     # Matplotlib settings
-    rcParams['text.usetex'] = True
-    rcParams['text.latex.unicode'] = True
     rcParams['axes.titlepad'] = 10
-    rcParams['font.family'] = "serif"
-    rcParams['font.serif'] = "cm"
     rcParams['font.size'] = 8
     fig = plt.figure(figsize=(7, 2.5), dpi=180)
     # Image
@@ -49,15 +50,22 @@ def compare(model_name, img_id, p,
     # Save and plot
     fig.tight_layout(pad=1)
     plt.subplots_adjust(left=0.05, right=0.95, top=0.80, bottom=0.05)
-    image_name = model_name + "_adv{}_n{}.png".format(img_id, p)
-    plt.savefig("attack_results/" + image_name, transparent=True)
 
 
-def norm_and_conf(norms, confs):
-    t = list(range(len(norms)))
-    rcParams['text.usetex'] = True
-    rcParams['text.latex.unicode'] = True
-    rcParams['font.serif'] = "cm"
+# Plots the history of a model training
+def training_history(train_accs, test_accs):
     rcParams['font.size'] = 12
-    plt.plot(t, norms, 'r', t, confs, 'b')
+    t = list(range(len(train_accs)))
+    plt.plot(t, train_accs, 'r')
+    plt.plot(t, test_accs, 'b')
+    plt.title("Network training history")
+    plt.legend(["train accuracy", "test accuracy"])
+
+
+# Plots the history of an attack
+def attack_history(norms, confs):
+    rcParams['font.size'] = 12
+    t = list(range(len(norms)))
+    plt.plot(t, norms, 'r')
+    plt.plot(t, confs, 'b')
     plt.legend(["$Pred$", "$Conf_c$"])

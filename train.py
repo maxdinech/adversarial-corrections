@@ -14,6 +14,7 @@ import torch
 from torch.utils.data import DataLoader, TensorDataset
 from basics import to_Var, load_architecture
 import matplotlib.pyplot as plt
+import plot
 from tqdm import tqdm
 import mnist_loader
 
@@ -101,7 +102,7 @@ def bar(data, e):
 
 
 # Main loop over each epoch
-train_accuracies, test_accuracies = [], []
+train_accs, test_accs = [], []
 train_losses, test_losses = [], []
 for e in range(epochs):
 
@@ -120,16 +121,16 @@ for e in range(epochs):
     # Calculates accuracy and loss on the train database.
     train_acc = accuracy(train_images, train_labels)
     train_loss = big_loss(train_images, train_labels)
-    train_accuracies.append(train_acc)
+    train_accs.append(train_acc)
     train_losses.append(train_loss)
 
     # Calculates accuracy and loss on the test database.
     test_acc = accuracy(test_images, test_labels)
     test_loss = big_loss(test_images, test_labels)
-    test_accuracies.append(test_acc)
+    test_accs.append(test_acc)
     test_losses.append(test_loss)
 
-    # Prints the losses and accuracies at the end of each epoch.
+    # Prints the losses and accs at the end of each epoch.
     print("  └-> train_loss: {:6.4f} - train_acc: {:5.2f}%  ─  "
           .format(train_loss, train_acc), end='')
     print("test_loss: {:6.4f} - test_acc: {:5.2f}%"
@@ -142,17 +143,6 @@ if save_model:
     file.write("{}: train_acc: {}  -  test_acc: {}"
                .format(model_name, train_acc, test_acc))
     torch.save(model, 'models/' + model_name + '.pt')
-    # Saves the accuracies history graph
-    t = list(range(epochs))
-    plt.plot(t, train_accuracies, 'r')
-    plt.plot(t, test_accuracies, 'b')
-    plt.title("Network training history")
-    plt.legend(["train_acc", "test_acc"])
-    plt.savefig("models/" + model_name + "_acc.png", transparent=True)
-    # Saves the losses history graph
-    plt.clf()
-    plt.plot(t, train_losses, 'r')
-    plt.plot(t, test_losses, 'b')
-    plt.title("Network training history")
-    plt.legend(["train_loss", "test_loss"])
-    plt.savefig("models/" + model_name + "_loss.png", transparent=True)
+    # Saves the accs history graph
+    plot.accs(train_accs, test_accs)
+    plt.savefig("models/" + model_name + ".png", transparent=True)
