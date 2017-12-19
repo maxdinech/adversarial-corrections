@@ -1,8 +1,10 @@
 """
 Automatically creates and loads the MNIST database.
 
-The database is split between train (50000 samples), test and val (10000
-samples each).
+The database is split between :
+    - train (50000 samples),
+    - test  (1000 samples),
+    - val  (10000 samples).
 """
 
 
@@ -19,8 +21,12 @@ def create():
                 train=True,
                 transform=transforms.ToTensor(),
                 download=True)
+    images, labels = torch.load('data/processed/training.pt')
+    images_train, labels_train = images[:50000].clone(), labels[:50000].clone()
+    images_val, labels_val = images[50000:].clone(), labels[50000:].clone()
+    torch.save((images_train, labels_train), 'data/train.pt')
+    torch.save((images_val, labels_val), 'data/val.pt')
     shutil.move('data/processed/test.pt', 'data/test.pt')
-    shutil.move('data/processed/training.pt', 'data/train.pt')
     shutil.rmtree('data/raw')
     shutil.rmtree('data/processed')
 
@@ -42,6 +48,8 @@ def load(db_name, nb_elements):
     return images, labels
 
 
-train = lambda nb_train=60000: load('train', nb_train)
+train = lambda nb_train=50000: load('train', nb_train)
 
 test = lambda nb_test=10000: load('test', nb_test)
+
+val = lambda nb_val=10000: load('val', nb_val)
