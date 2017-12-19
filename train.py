@@ -140,7 +140,7 @@ for e in range(epochs):
 # Saves the network if stated.
 if save_model:
     file = open('models/results.txt', 'a')
-    file.write("{}: train_acc: {}  -  test_acc: {}"
+    file.write("{}: train_acc: {:5.2f}%  -  test_acc: {:5.2f}%"
                .format(model_name, train_acc, test_acc))
     torch.save(model, 'models/' + model_name + '.pt')
     # Saves the accs history graph
