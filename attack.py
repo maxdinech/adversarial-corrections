@@ -13,6 +13,7 @@ import mnist_loader
 import matplotlib.pyplot as plt
 import plot
 
+
 # Passed parameters
 model_name = sys.argv[1]
 
@@ -196,7 +197,7 @@ def resistance_min(image_id, max_steps):
 
 
 # Computes the N-resistance, max_resistance and min_resistance in a single pass
-def resistances(image_id, steps):
+def resistances_3(image_id, steps):
     attack_result = attack(load_image(image_id), steps)
     norms = attack_result[2]
     confs = attack_result[3]
@@ -209,29 +210,77 @@ def resistances(image_id, steps):
 def resistances_lists(list, steps):
     L_res_N, L_res_max, L_res_min = [], [], []
     for image_id in list:
-        res_N, res_max, res_min = resistances(image_id, steps)
+        res_N, res_max, res_min = resistances_3(image_id, steps)
         L_res_N += [res_N]
         L_res_max += [res_max]
         L_res_min += [res_min]
     return (L_res_N, L_res_max, L_res_min)
 
 
-# STATS FUNCTIONS
-# ---------------
+# ADVERSARIAL CORRECTIONS
+# -----------------------
 
 
-def histogram(values, delimiters):
-    nb = len(values)
-    tensor = torch.Tensor(values)
-    counts = []
-    for i in range(len(delimiters) - 1):
-        inf = delimiters[i]
-        sup = delimiters[i+1]
-        counts += [100 * ((inf <= tensor) & (tensor < sup)).double().sum() / nb]
-    inf = delimiters[-1]
-    counts += [100 * (inf <= tensor).double().sum() / nb]
-    return counts
+def labels_list(list):
+    return [load_label(i) for i in list]
 
 
-# AVERSARIAL CORRECTIONS
+def pred_labels_list(list):
+    return [prediction(load_image(i)) for i in list]
+
+
+def corr_labels_list(list, max_steps):
+    return [prediction(attack_break(load_image(i), max_steps)) for i in list]
+
+
+def error_count(labels, pred_labels, corr_labels, resistances, criterion):
+    errs = 0
+    for l, p, a, r in zip(labels, pred_labels, corr_labels, resistances):
+        if r > criterion:
+            errs += 1 * (p != l)
+        else:
+            errs += 1 * (a != l)
+    return errs
+
+
+# DISCRIMINATOR DATABASE
 # ----------------------
+
+
+def build_test_database():
+    all_norms = []
+    all_confs = []
+    valid_preds = []
+    for i in range(2):
+        print(i)
+        image = load_image(i)
+        label = load_label(i)
+        pred_label = prediction(image)
+        attack_result = attack(image, 500)
+        norms = attack_result[2]
+        confs = attack_result[3]
+        all_norms += [norms]
+        all_confs += [confs]
+        valid_preds += [1 * (label == pred_label)]
+    all_norms = torch.Tensor(all_norms)
+    all_confs = torch.Tensor(all_confs)
+    valid_preds = torch.Tensor(valid_preds).byte()
+    data = (all_norms, all_confs, valid_preds)
+    torch.save(data, 'data/' + model_name + '_test.pt')
+
+
+# DISCRIMINATOR NETWORK TRAINING
+# ------------------------------
+
+
+discriminator = nn.Sequential(
+    nn.Linear(2 * 21, 20),
+    nn.ReLU(True),
+    nn.Dropout(),
+    nn.Linear(20, 20),
+    nn.ReLU(True),
+    nn.Dropout(),
+    nn.Linear(20, 1),
+    nn.Softmax()
+)
+
