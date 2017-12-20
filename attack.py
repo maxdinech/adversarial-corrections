@@ -142,6 +142,7 @@ def attack_graph(image_id, steps=500, p=2, lr=1e-3):
     image = load_image(image_id)
     success, adv_image, norms, confs = attack(image, steps, p, lr)
     plot.attack_history(norms, confs)
+    plt.savefig("../car-crash/docs/images/attack.png", transparent=True)
     plt.show()
     if success:
         print("\nAttack suceeded")
@@ -149,10 +150,10 @@ def attack_graph(image_id, steps=500, p=2, lr=1e-3):
         image_conf = confidence(image, image_pred)
         adv_image_pred = prediction(adv_image)
         adv_image_conf = confidence(adv_image, adv_image_pred)
-        plt.compare(model_name, image_id, p,
-                    image, image_pred, image_conf,
-                    adv_image, adv_image_pred, adv_image_conf)
-        image_name = model_name + "_adv{}_n{}.png".format(image_id, p)
+        plot.compare(model_name, image_id, p,
+                     image, image_pred, image_conf,
+                     adv_image, adv_image_pred, adv_image_conf)
+        image_name = model_name + "_adv_{}.png".format(image_id, p)
         plt.savefig("attack_results/" + image_name, transparent=True)
         plt.show()
     else:
@@ -161,16 +162,19 @@ def attack_graph(image_id, steps=500, p=2, lr=1e-3):
 
 def attack_break_graph(image_id, max_steps=500, p=2, lr=1e-3):
     image = load_image(image_id)
-    success, adv_image, norms, confs = attack_break(image, max_steps, p, lr)
+    success, adv_image, norms, confs = attack(image, max_steps, p, lr)
     plot.attack_history(norms, confs)
+    plt.savefig("../car-crash/docs/images/attack.png", transparent=True)
     plt.show()
     image_pred = prediction(image)
     image_conf = confidence(image, image_pred)
     adv_image_pred = prediction(adv_image)
     adv_image_conf = confidence(adv_image, adv_image_pred)
-    plt.compare(model_name, image_id, p,
-                image, image_pred, image_conf,
-                adv_image, adv_image_pred, adv_image_conf)
+    plot.compare(model_name, image_id, p,
+                 image, image_pred, image_conf,
+                 adv_image, adv_image_pred, adv_image_conf)
+    image_name = model_name + "_adv_{}.png".format(image_id, p)
+    plt.savefig("attack_results/" + image_name, transparent=True)
     plt.show()
 
 
@@ -198,7 +202,7 @@ def resistances(image_id, steps):
     confs = attack_result[3]
     res_N = norms[-1]
     res_max = max(norms)
-    res_min = next((i for i, c in enumerate(confs) if c <= 0.2), steps)
+    res_min = 1 + next((i for i, c in enumerate(confs) if c <= 0.2), steps)
     return (res_N, res_max, res_min)
 
 
@@ -217,30 +221,17 @@ def resistances_lists(list, steps):
 
 
 def histogram(values, delimiters):
+    nb = len(values)
     tensor = torch.Tensor(values)
     counts = []
     for i in range(len(delimiters) - 1):
         inf = delimiters[i]
         sup = delimiters[i+1]
-        counts += [((inf <= tensor) & (tensor < sup)).double().sum()]
+        counts += [100 * ((inf <= tensor) & (tensor < sup)).double().sum() / nb]
     inf = delimiters[-1]
-    counts += [(inf <= tensor).double().sum()]
+    counts += [100 * (inf <= tensor).double().sum() / nb]
     return counts
 
 
-# AVERSARIAL COUNTER-ATTACKS
-# --------------------------
-
-
-# Tests if the label obtained by the adversarial counter-attack is
-# the true one.
-def counter_attack(image_id, max_steps):
-    image = load_image(image_id)
-    label = load_label(image_id)
-    adv_image = attack_break(image, max_steps)[1]
-    adv_label = prediction(adv_image)
-    return adv_label == label
-
-
-def counter_attacks_list(list, max_steps):
-    return [counter_attack(i, max_steps) for i in list]
+# AVERSARIAL CORRECTIONS
+# ----------------------
