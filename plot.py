@@ -64,8 +64,8 @@ def train_history(train_accs, test_accs):
 
 # Plots the history of an attack
 def attack_history(norms, confs):
-    rcParams['font.size'] = 12
+    rcParams['font.size'] = 14
     t = list(range(len(norms)))
     plt.plot(t, norms, 'r')
     plt.plot(t, confs, 'b')
-    plt.legend(["$Pred$", "$Conf_c$"])
+    plt.legend(["$\\Vert r \\Vert$", "$Conf_c$"])
