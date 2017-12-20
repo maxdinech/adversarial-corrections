@@ -251,7 +251,7 @@ def build_test_database():
     all_norms = []
     all_confs = []
     valid_preds = []
-    for i in range(2):
+    for i in range(10000):
         print(i)
         image = load_image(i)
         label = load_label(i)
