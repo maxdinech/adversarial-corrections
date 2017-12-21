@@ -13,18 +13,18 @@ class AlexNet(nn.Module):
         # Training hyperparameters
         self.lr = 3e-4
         self.epochs = 100
-        self.batch_size = 32
+        self.batch_size = 64
         self.features = nn.Sequential(
-            nn.Conv2d(1, 20, kernel_size=5),
+            nn.Conv2d(1, 32, kernel_size=5),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=2),
-            nn.Conv2d(20, 40, kernel_size=3),
+            nn.Conv2d(32, 64, kernel_size=3),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=2)
         )
         self.classifier = nn.Sequential(
             nn.Dropout(),
-            nn.Linear(40 * 5 * 5, 120),
+            nn.Linear(64 * 5 * 5, 120),
             nn.ReLU(inplace=True),
             nn.Dropout(),
             nn.Linear(120, 10),
