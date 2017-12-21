@@ -60,6 +60,17 @@ def errors(n=len(images)):
         i += 1
 
 
+def not_errors(n=len(images)):
+    i = 0
+    l = len(images)
+    while i < l and n > 0:
+        image, label = load_image(i), load_label(i)
+        if prediction(image) == label:
+            yield i
+            n -= 1
+        i += 1
+
+
 # ATTACK FUNCTIONS
 # ----------------
 
