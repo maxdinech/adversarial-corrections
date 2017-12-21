@@ -16,7 +16,7 @@ from basics import to_Var, load_architecture
 import matplotlib.pyplot as plt
 import plot
 from tqdm import tqdm
-import mnist_loader
+import fashion_mnist_loader
 
 
 # Passed parameters
@@ -44,8 +44,8 @@ optimizer = model.optimizer
 
 
 # Loads the train and test databases.
-train_images, train_labels = mnist_loader.train(nb_train)
-test_images, test_labels = mnist_loader.test(nb_test)
+train_images, train_labels = fashion_mnist_loader.train(nb_train)
+test_images, test_labels = fashion_mnist_loader.test(nb_test)
 
 train_loader = DataLoader(TensorDataset(train_images, train_labels),
                           batch_size=batch_size,

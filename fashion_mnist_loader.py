@@ -1,5 +1,5 @@
 """
-Automatically creates and loads the MNIST database.
+Automatically creates and loads the FashionMNIST database.
 
 The database is split between :
     - train (50000 samples),
@@ -15,12 +15,12 @@ import shutil
 import os.path
 
 
-# Creates the files `train.pt`, and `test.pt` from MNIST.
+# Creates the files `train.pt`, and `test.pt` from FashionMNIST.
 def create():
-    dsets.MNIST(root='data/',
-                train=True,
-                transform=transforms.ToTensor(),
-                download=True)
+    dsets.FashionMNIST(root='data/',
+                       train=True,
+                       transform=transforms.ToTensor(),
+                       download=True)
     images, labels = torch.load('data/processed/training.pt')
     images_train, labels_train = images[:50000].clone(), labels[:50000].clone()
     images_val, labels_val = images[50000:].clone(), labels[50000:].clone()

@@ -55,14 +55,7 @@ Attacking a network consists in determining a perturbation $r$ such that `model.
 
 To approach an acceptable value of $r$, we minimize the following function by a gradient descent.
 
-$$
-Loss_2 =
-\begin{cases}
-  \Vert r \Vert                 & \text{if } Conf_c(img+r) \leq 0.2 \\
-  Conf_c(img+r) + \Vert r \Vert & \text{if } Conf_c(img+r) \leq 0.9 \\
-  Conf_c(img+r) - \Vert r \Vert & \text{else.}
-\end{cases}
-$$
+<p align="center"><img src="https://rawgit.com/maxdinech/mnist-attack/master/svgs/dc60ef3cf61b1e35a6ffaf710212e545.svg?invert_in_darkmode" align=middle width=381.42885pt height=69.041775pt/></p>
 
 ### Instructions
 

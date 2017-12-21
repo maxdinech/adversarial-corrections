@@ -9,7 +9,7 @@ import sys
 import torch
 from torch import nn
 from basics import to_Var, load_model
-import mnist_loader
+import fashion_mnist_loader
 import matplotlib.pyplot as plt
 import plot
 
@@ -23,7 +23,7 @@ model = load_model(model_name)
 
 
 # Loads the database
-images, labels = mnist_loader.test()
+images, labels = fashion_mnist_loader.test()
 
 
 # BASIC FUNCTIONS

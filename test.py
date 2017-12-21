@@ -12,7 +12,7 @@ import torch
 from torch.utils.data import DataLoader, TensorDataset
 from basics import to_Var
 from tqdm import tqdm
-import mnist_loader
+import fashion_mnist_loader
 
 
 # Passed parameters
@@ -30,8 +30,8 @@ except FileNotFoundError:
 
 
 # Loads the train, test and val databases.
-train_images, train_labels = mnist_loader.train()
-test_images, test_labels = mnist_loader.test()
+train_images, train_labels = fashion_mnist_loader.train()
+test_images, test_labels = fashion_mnist_loader.test()
 
 
 # Computes the acccuracy of the model.
