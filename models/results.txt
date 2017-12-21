@@ -1,2 +1,2 @@
-AlexNet: train_acc: 99.25%  -  test_acc: 99.11%
-AlexNet_bn: train_acc: 99.90%  -  test_acc: 99.03%
+AlexNet: train_acc: 92.39%  -  test_acc: 90.14%
+

@@ -12,7 +12,7 @@ class AlexNet(nn.Module):
         super(AlexNet, self).__init__()
         # Training hyperparameters
         self.lr = 3e-4
-        self.epochs = 50
+        self.epochs = 80
         self.batch_size = 32
         self.features = nn.Sequential(
             nn.Conv2d(1, 20, kernel_size=5),
