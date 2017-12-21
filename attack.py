@@ -79,7 +79,7 @@ class Attacker(nn.Module):
         norm = (adv_image - image).pow(self.p).sum()
         if (conf < 0.2).data[0]:
             return norm
-        elif (conf < 0.95).data[0]:
+        elif (conf < 0.9).data[0]:
             return conf + norm
         else:
             return conf - norm
@@ -143,18 +143,19 @@ def attack_graph(image_id, steps=500, p=2, lr=1e-3):
     image = load_image(image_id)
     success, adv_image, norms, confs = attack(image, steps, p, lr)
     plot.attack_history(norms, confs)
-    plt.savefig("../car-crash/docs/images/attack.png", transparent=True)
+    plt.savefig("../car-crash/docs/images/attack_{}.png".format(image_id),
+                transparent=True)
     plt.show()
     if success:
         print("\nAttack suceeded")
         image_pred = prediction(image)
-        image_conf = confidence(image, image_pred)
+        image_conf = 100 * confidence(image, image_pred)
         adv_image_pred = prediction(adv_image)
-        adv_image_conf = confidence(adv_image, adv_image_pred)
+        adv_image_conf = 100 * confidence(adv_image, adv_image_pred)
         plot.compare(model_name, image_id, p,
                      image, image_pred, image_conf,
                      adv_image, adv_image_pred, adv_image_conf)
-        image_name = model_name + "_adv_{}.png".format(image_id, p)
+        image_name = model_name + "_adv_{}.png".format(image_id)
         plt.savefig("attack_results/" + image_name, transparent=True)
         plt.show()
     else:
