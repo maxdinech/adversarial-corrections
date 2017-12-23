@@ -1,14 +1,16 @@
 """
 Networks training.
 
-Syntax : python train.py MODEL bool
+Syntax : python train.py MODEL DATASET SAVE
 
-If bool=True, the trained model is saved in models/
+MODEL is either AlexNet, AlexNet_bn, VGG or VGG_bn (see architectures.py)
+DATASET is either MNIST or FashionMNIST
+If SAVE = True, the trained model is saved in models/dataset.
 
-The models architectures are defined in architectures.py
 """
 
 
+import os
 import sys
 import torch
 from torch.utils.data import DataLoader, TensorDataset
@@ -16,17 +18,18 @@ from basics import to_Var, load_architecture
 import matplotlib.pyplot as plt
 import plot
 from tqdm import tqdm
-import fashion_mnist_loader
+import data_loader
 
 
 # Passed parameters
 model_name = sys.argv[1]
-save_model = ((sys.argv + ["False"])[2] == "True")  # Default: save_model=False
+dataset = sys.argv[2]
+save_model = ((sys.argv + ["False"])[3] == "True")  # Default: save_model=False
 
 
 # Sizes of the train and test databases
-nb_train = 50000
-nb_test = 10000
+nb_train = 5000
+nb_test = 1000
 
 
 # Model instanciation
@@ -44,8 +47,8 @@ optimizer = model.optimizer
 
 
 # Loads the train and test databases.
-train_images, train_labels = fashion_mnist_loader.train(nb_train)
-test_images, test_labels = fashion_mnist_loader.test(nb_test)
+train_images, train_labels = data_loader.train(dataset, nb_train)
+test_images, test_labels = data_loader.test(dataset, nb_test)
 
 train_loader = DataLoader(TensorDataset(train_images, train_labels),
                           batch_size=batch_size,
@@ -101,48 +104,54 @@ def bar(data, e):
     return tqdm(data, desc=epoch, ncols=100, unit='b', bar_format=bar_format)
 
 
-# Main loop over each epoch
 train_accs, test_accs = [], []
 train_losses, test_losses = [], []
-for e in range(epochs):
 
-    # Secondary loop over each mini-batch
-    for (x, y) in bar(train_loader, e):
+try:
+    # Main loop over each epoch
+    for e in range(epochs):
 
-        # Computes the network output
-        y_pred = model.train()(to_Var(x))
-        loss = loss_fn(y_pred, to_Var(y))
+        # Secondary loop over each mini-batch
+        for (x, y) in bar(train_loader, e):
 
-        # Optimizer step
-        model.zero_grad()
-        loss.backward()
-        optimizer.step()
+            # Computes the network output
+            y_pred = model.train()(to_Var(x))
+            loss = loss_fn(y_pred, to_Var(y))
 
-    # Calculates accuracy and loss on the train database.
-    train_acc = accuracy(train_images, train_labels)
-    train_loss = big_loss(train_images, train_labels)
-    train_accs.append(train_acc)
-    train_losses.append(train_loss)
+            # Optimizer step
+            model.zero_grad()
+            loss.backward()
+            optimizer.step()
 
-    # Calculates accuracy and loss on the test database.
-    test_acc = accuracy(test_images, test_labels)
-    test_loss = big_loss(test_images, test_labels)
-    test_accs.append(test_acc)
-    test_losses.append(test_loss)
+        # Calculates accuracy and loss on the train database.
+        train_acc = accuracy(train_images, train_labels)
+        train_loss = big_loss(train_images, train_labels)
+        train_accs.append(train_acc)
+        train_losses.append(train_loss)
 
-    # Prints the losses and accs at the end of each epoch.
-    print("  └-> train_loss: {:6.4f} - train_acc: {:5.2f}%  ─  "
-          .format(train_loss, train_acc), end='')
-    print("test_loss: {:6.4f} - test_acc: {:5.2f}%"
-          .format(test_loss, test_acc))
+        # Calculates accuracy and loss on the test database.
+        test_acc = accuracy(test_images, test_labels)
+        test_loss = big_loss(test_images, test_labels)
+        test_accs.append(test_acc)
+        test_losses.append(test_loss)
 
+        # Prints the losses and accs at the end of each epoch.
+        print("  └-> train_loss: {:6.4f} - train_acc: {:5.2f}%  ─  "
+              .format(train_loss, train_acc), end='')
+        print("test_loss: {:6.4f} - test_acc: {:5.2f}%"
+              .format(test_loss, test_acc))
+
+except KeyboardInterrupt:
+    pass
 
 # Saves the network if stated.
 if save_model:
-    file = open('models/results.txt', 'a')
-    file.write("{}: train_acc: {:5.2f}%  -  test_acc: {:5.2f}%"
+    path = 'models/' + dataset + '/'
+    os.mkdir(path)
+    file = open(path + 'results.txt', 'a')
+    file.write("{}: train_acc: {:5.2f}%  -  test_acc: {:5.2f}%\n"
                .format(model_name, train_acc, test_acc))
-    torch.save(model, 'models/' + model_name + '.pt')
+    torch.save(model, path + model_name + '.pt')
     # Saves the accs history graph
     plot.train_history(train_accs, test_accs)
-    plt.savefig("models/" + model_name + ".png", transparent=True)
+    plt.savefig(path + model_name + ".png", transparent=True)
