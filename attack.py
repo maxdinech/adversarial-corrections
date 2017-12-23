@@ -9,21 +9,21 @@ import sys
 import torch
 from torch import nn
 from basics import to_Var, load_model
-import fashion_mnist_loader
+import data_loader
 import matplotlib.pyplot as plt
 import plot
 
 
 # Passed parameters
 model_name = sys.argv[1]
-
+dataset = sys.argv[2]
 
 # Loads the model
-model = load_model(model_name)
+model = load_model(dataset, model_name)
 
 
 # Loads the database
-images, labels = fashion_mnist_loader.test()
+images, labels = data_loader.test(dataset)
 
 
 # BASIC FUNCTIONS
@@ -242,7 +242,7 @@ def pred_labels_list(list):
 
 
 def corr_labels_list(list, max_steps):
-    return [prediction(attack_break(load_image(i), max_steps)) for i in list]
+    return [prediction(attack_break(load_image(i), max_steps)[1]) for i in list]
 
 
 def error_count(labels, pred_labels, corr_labels, resistances, criterion):

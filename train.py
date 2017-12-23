@@ -28,8 +28,8 @@ save_model = ((sys.argv + ["False"])[3] == "True")  # Default: save_model=False
 
 
 # Sizes of the train and test databases
-nb_train = 5000
-nb_test = 1000
+nb_train = 50000
+nb_test = 10000
 
 
 # Model instanciation
@@ -60,7 +60,7 @@ nb_batches = len(train_loader)
 # Computes the acccuracy of the model.
 def accuracy(images, labels):
     data = TensorDataset(images, labels)
-    loader = DataLoader(data, batch_size=1000, shuffle=False)
+    loader = DataLoader(data, batch_size=100, shuffle=False)
     count = 0
     for (x, y) in loader:
         y, y_pred = to_Var(y), model.eval()(to_Var(x))
@@ -73,7 +73,7 @@ def accuracy(images, labels):
 # (computing the loss mini-match after mini-batch avoids memory overload)
 def big_loss(images, labels):
     data = TensorDataset(images, labels)
-    loader = DataLoader(data, batch_size=1000, shuffle=False)
+    loader = DataLoader(data, batch_size=100, shuffle=False)
     count = 0
     for (x, y) in loader:
         y, y_pred = to_Var(y), model.eval()(to_Var(x))
@@ -147,7 +147,8 @@ except KeyboardInterrupt:
 # Saves the network if stated.
 if save_model:
     path = 'models/' + dataset + '/'
-    os.mkdir(path)
+    if not os.path.exists(path):
+        os.mkdir(path)
     file = open(path + 'results.txt', 'a')
     file.write("{}: train_acc: {:5.2f}%  -  test_acc: {:5.2f}%\n"
                .format(model_name, train_acc, test_acc))

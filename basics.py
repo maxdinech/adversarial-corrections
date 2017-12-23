@@ -22,13 +22,12 @@ def load_architecture(model_name):
     return model
 
 
-def load_model(model_name):
+def load_model(dataset, model_name):
     try:
-        model = torch.load("models/" + model_name + ".pt",
+        model = torch.load('models/' + dataset + '/' + model_name + '.pt',
                            map_location=lambda storage, loc: storage)
         if torch.cuda.is_available():
             model = model.cuda()
         return model
     except FileNotFoundError:
-        print("No trained model found.")
-        print("run : python train.py", model_name, "to train the model.")
+        raise ValueError('No trained model found.')
