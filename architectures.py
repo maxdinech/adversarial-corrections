@@ -45,21 +45,21 @@ class AlexNet_bn(nn.Module):
     def __init__(self):
         super(AlexNet_bn, self).__init__()
         # Training hyperparameters
-        self.lr = 2e-5
+        self.lr = 3e-4
         self.epochs = 100
-        self.batch_size = 32
+        self.batch_size = 64
         self.features = nn.Sequential(
-            nn.Conv2d(1, 20, kernel_size=5),
+            nn.Conv2d(1, 32, kernel_size=5),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=2),
-            nn.BatchNorm2d(20),
-            nn.Conv2d(20, 40, kernel_size=3),
+            nn.BatchNorm2d(32),
+            nn.Conv2d(32, 64, kernel_size=3),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=2),
-            nn.BatchNorm2d(40)
+            nn.BatchNorm2d(64)
         )
         self.classifier = nn.Sequential(
-            nn.Linear(40 * 5 * 5, 120),
+            nn.Linear(64 * 5 * 5, 120),
             nn.ReLU(inplace=True),
             nn.BatchNorm1d(120),
             nn.Linear(120, 10),
@@ -80,7 +80,7 @@ class VGG(nn.Module):
     def __init__(self):
         super(VGG, self).__init__()
         # Training hyperparameters
-        self.lr = 2e-5
+        self.lr = 1e-4
         self.epochs = 40
         self.batch_size = 32
         self.features = nn.Sequential(
@@ -120,7 +120,7 @@ class VGG_bn(nn.Module):
     def __init__(self):
         super(VGG_bn, self).__init__()
         # Training hyperparameters
-        self.lr = 2e-5
+        self.lr = 1e-4
         self.epochs = 40
         self.batch_size = 32
         self.features = nn.Sequential(
