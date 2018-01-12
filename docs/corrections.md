@@ -57,9 +57,9 @@ On réalisera toute cette étude sur deux réseaux de type `AlexNet` (CNN avec D
 
 Les bases de données `MNIST` et `FashionMNIST` sont divisées de la manière suivante\ :
 
-- 50000 images d'entraînement ($\texttt{train}$)
+- 50000 images d'entraînement (`train`)
 - 10000 images de test (`test`)
-- 10000 images de validation ($\texttt{val}$)
+- 10000 images de validation (`val`)
 
 Les réseaux sont entraînés sur les images de $\texttt{train}$, et on utilisera systématiquement sur les images de `test` par la suite, afin de travailler sur des images que le réseau n'a jamais vues. Les images de $\texttt{val}$ serviront à évaluer la généralisation des résultats obtenus.
 
