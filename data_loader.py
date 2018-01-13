@@ -22,11 +22,13 @@ def create(dataset):
                     train=True,
                     transform=transforms.ToTensor(),
                     download=True)
-    else:
+    elif dataset == 'FashionMNIST':
         dsets.FashionMNIST(root='data/',
                            train=True,
                            transform=transforms.ToTensor(),
                            download=True)
+    else:
+        raise ValueError("Unknown dataset")
     os.mkdir('data/' + dataset)
     images, labels = torch.load('data/processed/training.pt')
     images_train, labels_train = images[:50000].clone(), labels[:50000].clone()
@@ -56,12 +58,6 @@ def load(dataset, db_name, nb_elements):
     images = images.view(len(images), 1, 28, 28)
     return images, labels
 
-
-train = lambda dataset, nb_train=50000: load(dataset, 'train', nb_train)
-
-test = lambda dataset, nb_test=10000: load(dataset, 'test', nb_test)
-
-val = lambda dataset, nb_val=10000: load(dataset, 'val', nb_val)
 
 train = lambda dataset, nb_train=50000: load(dataset, 'train', nb_train)
 
