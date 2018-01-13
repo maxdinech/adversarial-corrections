@@ -5,7 +5,7 @@
 >
 >  Ce travail est motivé par l'observation de deux phénomènes intéressants dans le fonctionnement d'un algorithme d'attaque adversaire par descente de gradient. Premièrement, on observe une corrélation entre la difficulté à effectuer cette attaque (quantifiée par le concept de résistance) et la justesse de la prédiction du réseau. On en déduit alors une nouvelle expression de l'assurance d'un réseau classificateur. Deuxièmement, l'attaque adversaire proposée, lorsqu'elle est effectuée à partir d'une image incorrectement classifiée, produit presque toujours une image dont la catégorie est celle de l'image initiale. 
 >
-> L'utilisation combinée de ces deux phénomènes conduit naturellement à une méthode pour augmenter la précision d'un réseau classificateur quelconque. Le manque de finesse de la résistance nous pousse à introduire un réseau discriminateur, qui cherche à prédire si le classificateur se trompe ou non, pour ensuite corriger cette erreur par correction adversaire.
+> L'exploitation combinée de ces deux phénomènes conduit naturellement à une méthode pour augmenter la précision d'un réseau classificateur quelconque. Le manque de finesse de la résistance nous pousse à introduire un réseau discriminateur, qui cherche à prédire si le classificateur se trompe ou non, pour ensuite corriger cette erreur par correction adversaire.
 
 # 1. Les attaques adversaires
 
@@ -74,7 +74,7 @@ On réalise des attaques adversaires sur les images de `test`, en effectuant 500
 
 La Figure 2 a été obtenue en attaquant deux images différentes de `test` de `MNIST`.
 
-![évolution de $Conf_c$ et de $\Vert r \Vert$ au cours d'attaques adversaires](images/attaques.png)
+![Évolution de $Conf_c$ et de $\Vert r \Vert$ au cours d'attaques adversaires](images/attaques.png)
 
 Qualitativement, la norme de la perturbation augmente jusqu'à ce que $Conf_c$ passe en dessous de 0.9, à partir de quoi la norme diminue tout en gardant une valeur de $Conf_c$ stabilisée autour de 0.2.
 
@@ -85,14 +85,14 @@ L'image de droite peut au contraire être qualifiée de "facile à attaquer"\ : 
 
 On voit nettement ici l'influence de la valeur du seuil à 0.2 dans la fonction $Loss$. Dès que $Conf_c$ est en dessous de 0.2, l'algorithme a pour seul objectif de réduire la norme de la perturbation, et fatalement $Conf_c$ repasse au dessus de 0.2. Il s'agit alors de réduire à la fois $\Vert r \Vert$ et $Conf_c$, jusqu'à ce que $Conf_c$ repasse en dessous de 0.2, etc.
 
-D'autres exemples d'attaques d'images "faciles" ou "difficiles" à attaquer sont présentés dans l'Annexe A.
+D'autres exemples d'attaques d'images "faciles" ou "difficiles" à attaquer sont présentés dans l'Annexe B.
 
 Résumons les principales différences qualitatives entre ces deux types d'images\ :
 
 |                     | Images "faciles" | Images "difficiles" |
 | ------------------- | :--------------: | :-----------------: |
 | Pic                 | Absent ou faible |        Haut         |
-| étapes nécessaires  |  moins de $50$   |    plus de $200$    |
+| Étapes nécessaires  |  moins de $50$   |    plus de $200$    |
 | Norme de $r$ finale |      Faible      |       élevée        |
 
 Pour quantifier plus précisément cette difficulté à attaquer une image, introduisons le concept de *résistance*.
@@ -101,7 +101,7 @@ Pour quantifier plus précisément cette difficulté à attaquer une image, intr
 
 Pour chaque image, on essaie de quantifier la résistance, du réseau à une attaque adversaire. Plusieurs définitions sont possibles, par exemple la norme de la perturbation minimale mettant en échec le réseau\ :
 $$
-Res_\infty(img) = min \{\Vert r \Vert \; ; \; Pred(img+r) \neq Pred(img) \}
+Res_\infty(img) = min \{\Vert r \Vert \; ; \; Pred(img+r) \neq Pred(img)\}
 $$
 
 Cette expression de la résistance n'est que d'un faible intérêt en pratique, car incalculable. On utilisera donc plutôt les trois définitions suivantes\ :
@@ -123,23 +123,23 @@ $$
 
 ## 2.3 Une corrélation avec la justesse de la prédiction
 
-Les images attaquées dans l'Annexe A n'ont pas été choisies au hasard\ : les premières sont toutes classifiées correctement par le réseau, et les suivantes correspondent à des erreurs de classification.
+Les images attaquées dans l'Annexe B n'ont pas été choisies au hasard\ : les premières sont toutes classifiées correctement par le réseau, et les suivantes correspondent à des erreurs de classification.
 
 Ces résultats se généralisent\ : étudions la répartition des valeurs de la résistance sur des images correctement classifiées (notées **V**), et incorrectement classifiées (notées **F**) de `test`.
 
-Sur `MNIST`, avec $250$ images dans **V** et les $89$ erreurs dans **F**\ :
+Sur `MNIST`, avec 250 images dans **V** et les 62 erreurs dans **F**\ :
 
 | `MNIST` |   $Res_N$   | $Res_{max}$ | $Res_{min}$ |
 | ---------------- | :---------: | :---------: | :---------: |
-| 90% de **V**     | $\geq$ 0.90 | $\geq$ 1.89 |  $\geq$ 83  |
-| 90% de **F**     |  $<$ 0.75   |  $<$ 1.09   |   $<$ 58    |
+| 90% de **V** | $\geq$ 0.90 | $\geq$ 1.89 |  $\geq$ 83  |
+| 90% de **F** |  $<$ 0.75   |  $<$ 1.09   |   $<$ 58    |
 
-Et sur `FashionMNIST`, avec $250$ images dans **V** et dans **F**\ :
+Et sur `FashionMNIST`, avec 250 images dans **V** et dans **F**\ :
 
 | `FashionMNIST` |   $Res_N$   | $Res_{max}$ | $Res_{min}$ |
-| ----------------------- | :---------: | :---------: | :---------: |
-| 80% de **V**            | $\geq$ 0.29 | $\geq$ 0.56 |  $\geq$ 25  |
-| 80% de **F**            |  $<$ 0.31   |  $<$ 0.55   |   $<$ 25    |
+| -------------- | :---------: | :---------: | :---------: |
+| 80% de **V**   | $\geq$ 0.29 | $\geq$ 0.56 |  $\geq$ 25  |
+| 80% de **F**   |  $<$ 0.31   |  $<$ 0.55   |   $<$ 25    |
 
 Selon que les images sont correctement classifiées ou non, la répartition des résistances est très inégale\ : on trouve des valeurs des résistances qui discriminent de part et d'autre respectivement 90% des images **V** et **F** dans le cas de `MNIST`, et 80% pour `FashionMNIST`.
 
@@ -187,13 +187,13 @@ On a donc un premier résultat\ : à partir d'un réseau d'erreur *Top 1* donné
 
 Cette stratégie peut être intéressante dans une tâche de type \texttt{ImageNet}, où l'on s'intéresse à l'erreur *Top 5* commise par le classificateur. Utilisons l'algorithme suivant\ : sur les 5 meilleures prédictions du réseau, on ne conserve que les 3 meilleures, et on détermine deux autres catégories en réalisant des corrections adversaires a partir des deux premières.
 
-Faute de moyens techniques, cet algorithme n'a pu être expérimenté (taille gigantesque de la base de données), mais son efficacité à améliorer les résultats du classificateur est conjecturée.
+*Faute de moyens techniques, cet algorithme n'a pu être expérimenté (taille gigantesque de la base de données), mais son efficacité à améliorer les résultats du classificateur est conjecturée.*
 
 # 5. Une méthode pour réduire l'erreur du réseau
 
 ## 5.1 Une première méthode...
 
-Exploitons les deux phénomènes précédents pour tenter de réduire l'erreur commise par le réseau\ : On on détermine la résistance de chaque image du réseau. Si la résistance est supérieure à un certain critère, on considérera que la prédiction du réseau est correcte ; sinon on choisit comme prédiction le résultat de la contre-attaque adversaire.
+Exploitons les deux phénomènes précédents pour tenter de réduire l'erreur commise par le réseau\ : On détermine la résistance de chaque image du réseau. Si la résistance est supérieure à un certain critère, on considérera que la prédiction du réseau est correcte ; sinon on choisit comme prédiction le résultat de la contre-attaque adversaire.
 
 Sur un lot de 275 images de `test` de `FashionMNIST` (250 justes, 25 erreurs, proportion représentative de la base totale), avec respectivement $Res_{N=500}$, $Res_{min}$ et $Res_{max}$, on obtient le nombre d'erreurs commises en fonction du critère choisi, Figure 3.
 
@@ -242,12 +242,16 @@ Pour évaluer la généralisation de cette nouvelle méthode, on l'applique sur 
 ---
 
 \newpage
-# Annexe A
+# A. Structure des réseaux utilisées
 
-En Figure 4, les valeurs prises par $\Vert r \Vert$ et $Conf_c$ au cours de l'attaque de 6 images "faciles" à attaquer.
+\newpage
+# Quelques attaques supplémentaires
+
+
+En Figure 4, les valeurs prises par $\Vert r \Vert$ et $Conf_c$ au cours de l'attaque de 6 images "difficiles" à attaquer.
 
 ![Attaques adversaires "difficiles"](images/attaques_difficiles.png){width=95%}
 
-En Figure 5, même chose avec 6 images "difficiles" à attaquer.
+En Figure 5, même chose avec 6 images "faciles" à attaquer.
 
 ![Attaques adversaires "faciles"](images/attaques_faciles.png){width=95%}
