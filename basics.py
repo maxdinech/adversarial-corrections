@@ -5,6 +5,7 @@ Basic PyTorch functions
 
 import torch
 from torch.autograd import Variable
+import torchvision.models as models
 import architectures
 
 
@@ -23,11 +24,14 @@ def load_architecture(model_name):
 
 
 def load_model(dataset, model_name):
-    try:
-        model = torch.load('models/' + dataset + '/' + model_name + '.pt',
-                           map_location=lambda storage, loc: storage)
-        if torch.cuda.is_available():
-            model = model.cuda()
-        return model
-    except FileNotFoundError:
-        raise ValueError('No trained model found.')
+    if dataset is not 'ImageNet':
+        try:
+            model = torch.load('models/' + dataset + '/' + model_name + '.pt',
+                               map_location=lambda storage, loc: storage)
+            if torch.cuda.is_available():
+                model = model.cuda()
+            return model
+        except FileNotFoundError:
+            raise ValueError('No trained model found.')
+    else:
+        return getattr(models, model_name)(pretrained=True)
