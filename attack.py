@@ -1,7 +1,7 @@
 """
 Adversarial examples creation against a specified model
 
-Syntax: python -i attack.py MODEL
+Syntax: python -i attack.py MODEL DATASET
 """
 
 
@@ -78,7 +78,7 @@ class Attacker(nn.Module):
     def __init__(self, p, lr):
         super(Attacker, self).__init__()
         self.p = p
-        self.r = nn.Parameter(torch.zeros(1, 1, 28, 28), requires_grad=True)
+        self.r = nn.Parameter(torch.zeros(1, 1, 28, 28))
         self.optimizer = torch.optim.Adam(self.parameters(), lr=lr)
 
     def forward(self, x):
@@ -86,8 +86,8 @@ class Attacker(nn.Module):
 
     def loss_fn(self, image, digit):
         adv_image = self.forward(image)
-        conf = model.eval()(adv_image)[0, digit]
-        norm = (adv_image - image).pow(self.p).sum()
+        conf = model(adv_image)[0, digit]
+        norm = (adv_image - image).abs().pow(self.p).sum()
         if (conf < 0.2).data[0]:
             return norm
         elif (conf < 0.9).data[0]:
@@ -113,7 +113,7 @@ def attack(image, steps=500, p=2, lr=1e-3):
         adv_image = attacker.forward(image)
         conf = confidence(adv_image, digit)
         norm = (adv_image - image).norm(p).data[0]
-        print("Step {:4} -- conf: {:0.4f}, L_{}(r): {:0.10f}"
+        print("Step {:4} -- conf: {:0.4f}, L_{}(r): {:0.20f}"
               .format(i, conf, p, norm), end='\r')
         norms.append(norm)
         confs.append(conf)
@@ -175,7 +175,7 @@ def attack_graph(image_id, steps=500, p=2, lr=1e-3):
 
 def attack_break_graph(image_id, max_steps=500, p=2, lr=1e-3):
     image = load_image(image_id)
-    success, adv_image, norms, confs = attack(image, max_steps, p, lr)
+    success, adv_image, norms, confs = attack_break(image, max_steps, p, lr)
     plot.attack_history(norms, confs)
     plt.savefig("../car-crash/docs/images/attack.png", transparent=True)
     plt.show()
@@ -241,8 +241,8 @@ def pred_labels_list(list):
     return [prediction(load_image(i)) for i in list]
 
 
-def corr_labels_list(list, max_steps):
-    return [prediction(attack_break(load_image(i), max_steps)[1]) for i in list]
+def corr_labels_list(list, steps):
+    return [prediction(attack_break(load_image(i), steps)[1]) for i in list]
 
 
 def error_count(labels, pred_labels, corr_labels, resistances, criterion):
@@ -295,4 +295,3 @@ discriminator = nn.Sequential(
     nn.Linear(20, 1),
     nn.Softmax()
 )
-
