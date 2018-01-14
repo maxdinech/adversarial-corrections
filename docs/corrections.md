@@ -3,7 +3,7 @@
 
 > # Résumé
 >
->  Ce travail est motivé par l'observation de deux phénomènes intéressants dans le fonctionnement d'un algorithme d'attaque adversaire par descente de gradient. Premièrement, on observe une corrélation entre la difficulté à effectuer cette attaque (quantifiée par le concept de résistance) et la justesse de la prédiction du réseau. On en déduit alors une nouvelle expression de l'assurance d'un réseau classificateur. Deuxièmement, l'attaque adversaire proposée, lorsqu'elle est effectuée à partir d'une image incorrectement classifiée, produit presque toujours une image dont la catégorie est celle de l'image initiale. 
+>  Ce travail est motivé par l'observation de deux phénomènes intéressants dans le fonctionnement d'un algorithme particulier d'attaque adversaire. Premièrement, on observe une corrélation entre la difficulté à effectuer cette attaque (quantifiée par le concept de résistance) et la justesse de la prédiction du réseau. On en déduit alors une nouvelle expression de l'assurance d'un réseau classificateur. Deuxièmement, l'attaque adversaire proposée, lorsqu'elle est effectuée à partir d'une image incorrectement classifiée, produit presque toujours une image dont la catégorie est celle de l'image initiale. 
 >
 > L'exploitation combinée de ces deux phénomènes conduit naturellement à une méthode pour augmenter la précision d'un réseau classificateur quelconque. Le manque de finesse de la résistance nous pousse à introduire un réseau discriminateur, qui cherche à prédire si le classificateur se trompe ou non, pour ensuite corriger cette erreur par correction adversaire.
 
@@ -13,10 +13,10 @@
 
 Les réseaux de neurones sont notoirement vulnérables aux *exemples adversaires* [1]\ : il s'agit d'entrées imperceptiblement perturbées pour induire en erreur un réseau classificateur.
 
-Plus concrètement, en considérant $Pred$ la fonction qui à une image associe la catégorie prédite par réseau ; et en considérant une image $img$ de $[0, 1]^n$ (c'est à dire à $n$ pixels N&B ou $n/3$ pixels RGB), on cherche une perturbation $r \in [0, 1]^n$, de norme minimale, telle que\ :
+Plus concrètement, en considérant $Pred$ la fonction qui à une image associe la catégorie prédite par réseau ; et en considérant une image $img$ de $[0, 1]^n$ (c'est à dire à $n$ pixels N&B ou $\frac{n}{3}$ pixels RGB), on cherche une perturbation $r \in [0, 1]^n$, de norme minimale, telle que\ :
 
-1. $img + r \in [0, 1]^n$
-2. $Pred(img+r) \neq Pred(img)$
+- $img + r \in [0, 1]^n$
+- $Pred(img+r) \neq Pred(img)$
 
 Dans toute la suite, on utilisera la norme euclidienne. D'autres normes sont évidemment possibles, mais sans amélioration sensible des résultats.
 
@@ -28,7 +28,7 @@ Une méthode d'attaque possible est la suivante. Introduisons $Conf_c$ la foncti
 $$
 Loss_1 =
 \begin{cases}
-  \Vert r \Vert                 & \text{ si } Conf_c(img+r) \leq 0.2 \\
+  \Vert r \Vert                 & \text{ si } Conf_c(img+r) \leqslant 0.2 \\
   Conf_c(img+r) + \Vert r \Vert & \text{ sinon.}
 \end{cases}
 $$
@@ -37,8 +37,8 @@ Cette première fonction est expérimentalement peu satisfaisante car l'attaque 
 $$
 Loss_2 =
 \begin{cases}
-  \Vert r \Vert                 & \text{ si } Conf_c(img+r) \leq 0.2 \\
-  Conf_c(img+r) + \Vert r \Vert & \text{ si } Conf_c(img+r) \leq 0.9 \\
+  \Vert r \Vert                 & \text{ si } Conf_c(img+r) \leqslant 0.2 \\
+  Conf_c(img+r) + \Vert r \Vert & \text{ si } Conf_c(img+r) \leqslant 0.9 \\
   Conf_c(img+r) - \Vert r \Vert & \text{ sinon.}
 \end{cases}
 $$
@@ -47,7 +47,7 @@ Cette deuxième fonction produit presque toujours un exemple adversaire pour un 
 
 La Figure 1 montre le résultat d'une attaque adversaire\ : à gauche l'image originale, au milieu la perturbation et à droite l'image adversaire.
 
-![Résultat d'une attaque adversaire sur une image de \texttt{MNIST}](images/resultat_attaque.png)
+![Résultat d'une attaque adversaire sur une image de `MNIST`](images/resultat_attaque.png)
 
 On appellera $Pert_N$ la fonction qui à une image associe la perturbation obtenue après $N$ étapes de descente de gradient (avec un taux d'apprentissage $\eta = 10^{-3}$).
 
@@ -61,10 +61,9 @@ Les bases de données `MNIST` et `FashionMNIST` sont divisées de la manière su
 - 10000 images de test (`test`)
 - 10000 images de validation (`val`)
 
-Les réseaux sont entraînés sur les images de $\texttt{train}$, et on utilisera systématiquement sur les images de `test` par la suite, afin de travailler sur des images que le réseau n'a jamais vues. Les images de $\texttt{val}$ serviront à évaluer la généralisation des résultats obtenus.
+Les réseaux sont entraînés sur les images de `train`, et on utilisera systématiquement sur les images de `test` par la suite, afin de travailler sur des images que le réseau n'a jamais vues. Les images de `val` serviront à évaluer la généralisation des résultats obtenus.
 
-Sur les 10000 images de `test` de `MNIST`, toutes sauf 62 sont classifiées correctement par le réseau, et pour `FashionMNIST`, toutes sauf 917.
-
+Sur les 10000 images de `test` de `MNIST`, toutes sauf 62 sont classifiées correctement par le réseau, et pour `FashionMNIST`, toutes sauf 917\ : la classification de cette dernière est significativement plus difficile.
 
 # 2. Résistance à une attaque
 
@@ -78,7 +77,6 @@ La Figure 2 a été obtenue en attaquant deux images différentes de `test` de `
 
 Qualitativement, la norme de la perturbation augmente jusqu'à ce que $Conf_c$ passe en dessous de 0.9, à partir de quoi la norme diminue tout en gardant une valeur de $Conf_c$ stabilisée autour de 0.2.
 
-
 L'image de gauche peut être qualifiée de "difficile à attaquer"\ : il a été nécessaire d'augmenter très fortement la norme de la perturbation pour réussir à casser la prédiction du réseau, ce qui ne se produit qu'après un grand nombre d'étapes, et la norme finale de la perturbation est élevée.
 
 L'image de droite peut au contraire être qualifiée de "facile à attaquer"\ : bien moins d'étapes ont été nécessaires pour casser la prédiction du réseau, la norme finale est très basse, et le pic de très faible amplitude.
@@ -91,9 +89,9 @@ Résumons les principales différences qualitatives entre ces deux types d'image
 
 |                     | Images "faciles" | Images "difficiles" |
 | ------------------- | :--------------: | :-----------------: |
-| Pic                 | Absent ou faible |        Haut         |
-| Étapes nécessaires  |  moins de $50$   |    plus de $200$    |
-| Norme de $r$ finale |      Faible      |       élevée        |
+| Pic                 | absent ou faible |        haut         |
+| Étapes nécessaires  |   moins de 50    |     plus de 200     |
+| Norme de $r$ finale |      faible      |       élevée        |
 
 Pour quantifier plus précisément cette difficulté à attaquer une image, introduisons le concept de *résistance*.
 
@@ -113,12 +111,12 @@ $$
 
 $Res_{max}$ la hauteur du pic de la norme de la perturbation\ :
 $$
-Res_{max}(img) = max\big\{\Vert Pert_N(img) \Vert \; ; \; N \in \mathbb{N}\big\}
+Res_{max}(img) = \max \big\{\Vert Pert_N(img) \Vert \; ; \; N \in \mathbb{N}\big\}
 $$
 
-$Res_{min}$ le nombre d'étapes qu'il a fallu pour abaisser $Conf_c$ à $0.2$\ :
+$Res_{min}$ le nombre d'étapes qu'il a fallu pour abaisser $Conf_c$ à 0.2\ :
 $$
-Res_{min}(img) = min\big\{N \in \mathbb{N} \; ; \; Conf_c(Pert_N(img)) < 0.2\big\}
+Res_{min}(img) = \min \big\{N \in \mathbb{N} \; ; \; Conf_c(Pert_N(img)) < 0.2\big\}
 $$
 
 ## 2.3 Une corrélation avec la justesse de la prédiction
@@ -129,53 +127,53 @@ Ces résultats se généralisent\ : étudions la répartition des valeurs de la 
 
 Sur `MNIST`, avec 250 images dans **V** et les 62 erreurs dans **F**\ :
 
-| `MNIST` |   $Res_N$   | $Res_{max}$ | $Res_{min}$ |
-| ---------------- | :---------: | :---------: | :---------: |
-| 90% de **V** | $\geq$ 0.90 | $\geq$ 1.89 |  $\geq$ 83  |
-| 90% de **F** |  $<$ 0.75   |  $<$ 1.09   |   $<$ 58    |
+| `MNIST`      |   $Res_N$   | $Res_{max}$ | $Res_{min}$ |
+| ------------ | :--------------: | :--------------: | :--------------: |
+| 90% de **V** | $\geqslant$ 0.90 | $\geqslant$ 1.89 |  $\geqslant$ 83  |
+| 90% de **F** |  $<$ 0.75        |  $<$ 1.09        |   $<$ 58         |
 
 Et sur `FashionMNIST`, avec 250 images dans **V** et dans **F**\ :
 
 | `FashionMNIST` |   $Res_N$   | $Res_{max}$ | $Res_{min}$ |
-| -------------- | :---------: | :---------: | :---------: |
-| 80% de **V**   | $\geq$ 0.29 | $\geq$ 0.56 |  $\geq$ 25  |
-| 80% de **F**   |  $<$ 0.31   |  $<$ 0.55   |   $<$ 25    |
+| -------------- | :--------------: | :--------------: | :--------------: |
+| 80% de **V**   | $\geqslant$ 0.29 | $\geqslant$ 0.56 |  $\geqslant$ 25  |
+| 80% de **F**   |  $<$ 0.31        |  $<$ 0.55        |   $<$ 25         |
 
 Selon que les images sont correctement classifiées ou non, la répartition des résistances est très inégale\ : on trouve des valeurs des résistances qui discriminent de part et d'autre respectivement 90% des images **V** et **F** dans le cas de `MNIST`, et 80% pour `FashionMNIST`.
 
 Une corrélation se dessine donc nettement entre la résistance et la justesse de la prédiction du réseau.
 
-
 ## 2.4. Une méthode de détection des exemples adversaires
 
-Toute l'étude précédente a été réalisé dans l'hypothèse de l'absence d'exemples adversaires dans les bases de données étudiées. Une résistance faible était alors presque toujours associée à une erreur de classification.
-
-Dans un milieu "hostile", où la présence d'exemples adversaires est envisageable, un tel raccourci n'est plus valable. Essayons cependant d'utiliser ce même concept de résistance comme méthode de détection d'exemples adversaires.
+On observe des résultats similaires dans le cas des attaques adversaires\ : les exemples adversaires sont plus "facile" à attaquer que les vraies images.
 
 ### 2.4.1 Génération d'exemples adversaires
 
-La partie 1 présente une méthode efficace de génération d'exemple adversaire. On souhaite cependant se prémunir contre le plus grand nombre d'attaques possibles, et c'est pourquoi on confiera la génération d'exemples adversaires à la bibliothèque $\texttt{CleverHans}$ [5].
+La partie 1 présente une méthode efficace de génération d'exemple adversaire. On souhaite cependant se prémunir contre le plus grand nombre d'attaques possibles, et c'est pourquoi on confiera la génération d'exemples adversaires à la bibliothèque `CleverHans` [5].
 
-*expliquer ici rapidement les attaques utilisées*
+$\rangle$ *Expliquer ici rapidement les attaques utilisées*
 
 ### 2.4.2 Identification des exemples adversaires
 
-*étudier de la répartition des résistances sur les images __V__ (vraies images) et __A__ (exemples adversaires)*
+$\rangle$ *Étudier de la répartition des résistances sur les images __V__ (vraies images) et __A__ (exemples adversaires)*
 
-On ne peut plus alors conclure sur le contenu de l'image\ : une double attaque adversaire pourrait consister à faire croire que la catégorie prédite est fausse... 
+### 4.4.2 Des exemples adversaires qui trompent cette reconnaissance
+
+$\rangle$ *À compléter*
+
 
 # 3. Une nouvelle expression de l'assurance d'un réseau
 
-L'assurance du réseau sur sa prédiction, dénotée par la fonction $Conf_c$ où $c$ est la catégorie prédite n'est souvent pas une grandeur pertinente\ : elle est la plupart du temps très proche de $0$ ou de $1$ (ce qui est dû à l'algorithme de descente de gradient lors de l'apprentissage), et les exemples adversaires montrent que cette valeur n'est pas toujours fiable\ : le réseau peut facilement se tromper tout en étant certain à 99% de sa prédiction.
+L'assurance du réseau sur sa prédiction, dénotée par la fonction $Conf_c$ où $c$ est la catégorie prédite n'est souvent pas une grandeur pertinente\ : elle est la plupart du temps très proche de 0 ou de 1 (ce qui est dû à l'algorithme de descente de gradient lors de l'apprentissage), et les exemples adversaires montrent que cette valeur n'est pas toujours fiable\ : le réseau peut facilement se tromper tout en étant certain à 99% de sa prédiction.
 
 Une bonne fonction d'assurance devrait permettre de savoir si le réseau est véritablement sur de sa prédiction, ou bien s'il se trompe peut être, ou encore si il est face à un exemple adversaire.
 
-De plus, on a vu qu'une résistance haute correspond le plus souvent à une prédiction fiable, et qu'une résistance faible correspond ou bien à une erreur de classification, ou bien à une attaque du réseau. En utilisant cela, on peut proposer une autre expression de cette assurance, dont la valeur aura un sens concret\ :
+De plus, on a vu qu'une résistance haute correspond le plus souvent à une prédiction juste, et qu'une résistance faible correspond ou bien à une erreur de classification, ou bien à une attaque du réseau. En utilisant cela, on peut proposer une autre expression de cette assurance, dont la valeur aura un sens concret\ :
 $$
 Conf2_c(img) = \frac{Res}{1 + Res}
 $$
 
-*À compléter*
+$\rangle$ *À compléter*
 
 # 4. Les corrections adversaires
 
@@ -185,47 +183,51 @@ Ainsi, avec les réseaux précédents\ : sur les 62 erreurs commises sur la base
 
 On a donc un premier résultat\ : à partir d'un réseau d'erreur *Top 1* donnée, on peut en déduire un système d'erreur *Top 2* sensiblement moindre\ : dans les exemples précédents, on passe d'erreurs *Top 1* de 0.53% et 8.7% à des erreurs *Top 2* de respectivement 0.09% et 2.6%.
 
-Cette stratégie peut être intéressante dans une tâche de type \texttt{ImageNet}, où l'on s'intéresse à l'erreur *Top 5* commise par le classificateur. Utilisons l'algorithme suivant\ : sur les 5 meilleures prédictions du réseau, on ne conserve que les 3 meilleures, et on détermine deux autres catégories en réalisant des corrections adversaires a partir des deux premières.
+Cette stratégie peut être intéressante dans une tâche de type `ImageNet`, où l'on s'intéresse à l'erreur *Top 5* commise par le classificateur. Utilisons l'algorithme suivant\ : sur les 5 meilleures prédictions du réseau, on ne conserve que les 3 meilleures, et on détermine deux autres catégories en réalisant des corrections adversaires a partir des deux premières.
 
-*Faute de moyens techniques, cet algorithme n'a pu être expérimenté (taille gigantesque de la base de données), mais son efficacité à améliorer les résultats du classificateur est conjecturée.*
+*Faute de moyens techniques, cet algorithme n'a pu être expérimenté (taille gigantesque de la base de données), mais son efficacité à améliorer les résultats du classificateur est conjecturée*
 
 # 5. Une méthode pour réduire l'erreur du réseau
 
+Dans toute cette partie, on travaillera dans l'hypothèse de l'absence d'exemples adversaires dans les bases de données étudiées. Une résistance faible est alors presque toujours associée à une erreur de classification. On cherche alors à identifier le plus finement possible les erreurs de classification du réseau, pour les corriger ensuite avec la méthode de la correction adversaire.
+
+Dans un milieu "hostile" (c'est à dire où les images en entrée du réseau ont pu être altérées de manière malveillante), un tel raccourci ne sera plus valable\ : il est possible de modifier une image de sorte à abaisser sa résistance, faisant ainsi croire au réseau qu'il se trompe.
+
 ## 5.1 Une première méthode...
 
-Exploitons les deux phénomènes précédents pour tenter de réduire l'erreur commise par le réseau\ : On détermine la résistance de chaque image du réseau. Si la résistance est supérieure à un certain critère, on considérera que la prédiction du réseau est correcte ; sinon on choisit comme prédiction le résultat de la contre-attaque adversaire.
+La méthode "naïve" est la suivante\ : On détermine la résistance de chaque image du réseau. Si elle est supérieure à un certain seuil alors on considérera que la prédiction du réseau est correcte, sinon on choisit comme prédiction le résultat de la contre-attaque adversaire.
 
-Sur un lot de 275 images de `test` de `FashionMNIST` (250 justes, 25 erreurs, proportion représentative de la base totale), avec respectivement $Res_{N=500}$, $Res_{min}$ et $Res_{max}$, on obtient le nombre d'erreurs commises en fonction du critère choisi, Figure 3.
+Sur un lot de 275 images de `test` de `FashionMNIST` (250 justes, 25 erreurs, proportion représentative de la base totale), avec respectivement $Res_{N=500}$, $Res_{min}$ et $Res_{max}$, on obtient le nombre d'erreurs commises en fonction du seuil choisi, Figure 3.
 
-![Nombre d'erreurs en fonction du critère choisi](images/criteres.png)
+![Nombre d'erreurs en fonction du seuil choisi](images/criteres.png)
 
-Avec des critères à 0, on retrouve naturellement 25 erreurs, puisque l'on n'a rien modifié aux prédictions du réseau.
+Avec des seuils à 0, on retrouve naturellement 25 erreurs, puisque l'on n'a rien modifié aux prédictions du réseau.
 
-En revanche, avec des critère respectivement à 0.4, 0.685 et 45, le réseau ne commet plus que 11 erreurs.
+En revanche, avec des seuil respectivement à 0.4, 0.685 et 45, le réseau ne commet plus que 11 erreurs.
 
 ## 5.2 ...peu efficace à grande échelle.
 
-En appliquant les méthodes précédentes à l'ensemble de $10000$ images de `test` de `FashionMNIST`, on ne réussit qu'à faire passer le nombre d'erreurs de $X$ à $X$ dans le meilleur des cas. Le choix arbitraire d'un critère fixé n'est donc pas une méthode efficace ici.
+En appliquant les méthodes précédentes à l'ensemble de 10000 images de `test` de `FashionMNIST`, on ne réussit qu'à faire passer le nombre d'erreurs de $X$ à $X$ dans le meilleur des cas. Le choix arbitraire d'un seuil fixé n'est donc pas une méthode efficace ici.
 
-Ceci s'explique simplement\ : le nombre d'erreurs corrigées est trop faible devant le nombre de faux-positifs (images bien classées, mais considérées comme des erreurs par le critère), annulant tout le gain obtenu.
+Ceci s'explique simplement\ : le nombre d'erreurs corrigées est trop faible devant le nombre de faux-positifs (images bien classées, mais considérées comme des erreurs par le seuil), annulant tout le gain obtenu.
 
 ## 5.3 Réseau discriminateur
 
-Le choix arbitraire d'un critère et la représentation de la résistance par une seule valeur ne sont donc pas des méthodes efficaces pour réduire l'erreur du réseau. Essayons alors d'affiner la distinction entre les images correctement ou incorrectement prédites. Pour cela, on cherche à entraîner un réseau de neurones, dit *discriminateur*, à faire la distinction entre les images qui seront bien classifiées et celles qui seront mal classifiées.
+Le choix arbitraire d'un seuil et la représentation de la résistance par une seule valeur ne sont donc pas des méthodes efficaces pour réduire l'erreur du réseau. Essayons alors d'affiner la distinction entre les images correctement ou incorrectement prédites. Pour cela, on cherche à entraîner un réseau de neurones, dit *discriminateur*, à faire la distinction entre les images qui seront bien classifiées et celles qui seront mal classifiées.
 
 ### 5.3.1 Quelles données en entrée du réseau ?
 
-*À compléter*
+$\rangle$ *À compléter*
 
 ### 5.3.2 Structure et entraînement du réseau
 
-*À compléter*
+$\rangle$ *À compléter*
 
 ### 5.3.3 Généralisation des résultats obtenus
 
-Pour évaluer la généralisation de cette nouvelle méthode, on l'applique sur les images de $\texttt{val}$, sur lesquelles on n'a toujours pas travaillé, que ce soit pour l'entraînement du réseau ou la détermination du critère.
+Pour évaluer la généralisation de cette nouvelle méthode, on l'applique sur les images de `val`, sur lesquelles on n'a toujours pas travaillé, que ce soit pour l'entraînement du réseau ou la détermination du seuil.
 
-*À compléter*
+$\rangle$ *À compléter*
 
 # Bibliographie
 
