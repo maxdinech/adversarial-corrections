@@ -14,7 +14,7 @@ import shutil
 import os.path
 
 
-# Creates the files `train.pt`, and `test.pt` from FashionMNIST.
+# Creates the files `train.pt`, `val.pt` and `test.pt`.
 def create(dataset):
     if dataset == 'MNIST':
         datasets.MNIST(root='data/',
