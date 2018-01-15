@@ -9,8 +9,7 @@ The datasets are split between :
 
 
 import torch
-import torchvision.datasets as dsets
-import torchvision.transforms as transforms
+from torchvision import datasets, transforms
 import shutil
 import os.path
 
@@ -18,15 +17,15 @@ import os.path
 # Creates the files `train.pt`, and `test.pt` from FashionMNIST.
 def create(dataset):
     if dataset == 'MNIST':
-        dsets.MNIST(root='data/',
-                    train=True,
-                    transform=transforms.ToTensor(),
-                    download=True)
+        datasets.MNIST(root='data/',
+                       train=True,
+                       transform=transforms.ToTensor(),
+                       download=True)
     elif dataset == 'FashionMNIST':
-        dsets.FashionMNIST(root='data/',
-                           train=True,
-                           transform=transforms.ToTensor(),
-                           download=True)
+        datasets.FashionMNIST(root='data/',
+                              train=True,
+                              transform=transforms.ToTensor(),
+                              download=True)
     else:
         raise ValueError("Unknown dataset")
     os.mkdir('data/' + dataset)
@@ -44,18 +43,19 @@ def create(dataset):
 def load(dataset, db_name, nb_elements):
     if dataset not in ['MNIST', 'FashionMNIST']:
         raise ValueError("Unknown dataset")
-    path = 'data/' + dataset + '/' + db_name + '.pt'
-    if not os.path.exists(path):
-        create(dataset)
-    images, labels = torch.load(path)
-    images, labels = images[:nb_elements], labels[:nb_elements]
-    if torch.cuda.is_available():
-        images = images.type(torch.cuda.FloatTensor) / 255
-        labels = labels.type(torch.cuda.LongTensor)
     else:
-        images = images.type(torch.FloatTensor) / 255
-        labels = labels.type(torch.LongTensor)
-    images = images.view(len(images), 1, 28, 28)
+        path = 'data/' + dataset + '/' + db_name + '.pt'
+        if not os.path.exists(path):
+            create(dataset)
+        images, labels = torch.load(path)
+        images = images[:nb_elements].clone()
+        labels = labels[:nb_elements].clone()
+        images = images.float() / 255
+        labels = labels.long()
+        if torch.cuda.is_available():
+            images = images.cuda()
+            labels = labels.cuda()
+        images = images.view(len(images), 1, 28, 28)
     return images, labels
 
 

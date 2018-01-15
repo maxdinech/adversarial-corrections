@@ -5,7 +5,7 @@ Syntax : python train.py MODEL DATASET SAVE
 
 MODEL is either AlexNet, AlexNet_bn, VGG or VGG_bn (see architectures.py)
 DATASET is either MNIST or FashionMNIST
-If SAVE = True, the trained model is saved in models/dataset.
+If SAVE is True, the trained model is saved in models/DATASET/.
 
 """
 
