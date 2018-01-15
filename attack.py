@@ -194,18 +194,28 @@ def attack_break_graph(image_id, max_steps=500, p=2, lr=1e-3):
 # RESISTANCE FONCTIONS
 # --------------------
 
+# A resistance value greater than 1000 is highly unlikely.
+# 10000 will thus represent infinity when the attack fails.
+
 def resistance_N(image_id, steps):
-    norms = attack(load_image(image_id), steps)[2]
-    return norms[-1]
+    success, _, norms, _ = attack(load_image(image_id), steps)
+    if success:
+        return norms[-1]
+    return 10000
 
 
 def resistance_max(image_id, steps):
-    norms = attack(load_image(image_id), steps)[2]
-    return max(norms)
+    success, _, norms, _ = attack(load_image(image_id), steps)
+    if success:
+        return max(norms)
+    return 10000
 
 
 def resistance_min(image_id, max_steps):
-    return attack_break(load_image(image_id), max_steps)[0]
+    steps = attack_break(load_image(image_id), max_steps)[0]
+    if steps < max_steps:
+        return steps
+    return 10000
 
 
 # Computes the N-resistance, max_resistance and min_resistance in a single pass
