@@ -49,6 +49,7 @@ def confidence(image, category):
     return model.eval()(image)[0, category].data[0]
 
 
+# Returns the indices of the n first wrong prediction of the network.
 def errors(n=len(images)):
     i = 0
     l = len(images)
@@ -60,6 +61,7 @@ def errors(n=len(images)):
         i += 1
 
 
+# Returns the indices of the n first correct prediction of the network.
 def not_errors(n=len(images)):
     i = 0
     l = len(images)
@@ -221,12 +223,14 @@ def resistance_min(image_id, max_steps):
 # Computes the N-resistance, max_resistance and min_resistance in a single pass
 def resistances_3(image_id, steps):
     attack_result = attack(load_image(image_id), steps)
-    norms = attack_result[2]
-    confs = attack_result[3]
-    res_N = norms[-1]
-    res_max = max(norms)
-    res_min = 1 + next((i for i, c in enumerate(confs) if c <= 0.2), steps)
-    return (res_N, res_max, res_min)
+    success, _, norms, confs = attack_result
+    if success:
+        res_N = norms[-1]
+        res_max = max(norms)
+        res_min = 1 + next((i for i, c in enumerate(confs) if c <= 0.2), steps)
+        return (res_N, res_max, res_min)
+    else:
+        return (10000, 10000, 10000)
 
 
 def resistances_lists(list, steps):
