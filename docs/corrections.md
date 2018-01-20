@@ -1,6 +1,5 @@
 % Résistance aux attaques et corrections adversaires
 
-
 > # Résumé
 >
 >  Ce travail est motivé par l'observation de deux phénomènes intéressants dans le fonctionnement d'un algorithme particulier d'attaque adversaire. Premièrement, on observe une corrélation entre la difficulté à effectuer cette attaque (quantifiée par le concept de résistance) et la justesse de la prédiction du réseau. On en déduit alors une nouvelle expression de l'assurance d'un réseau classificateur. Deuxièmement, l'attaque adversaire proposée, lorsqu'elle est effectuée à partir d'une image incorrectement classifiée, produit presque toujours une image dont la catégorie est celle de l'image initiale. 
@@ -24,18 +23,18 @@ Dans toute la suite, on utilisera la norme euclidienne. D'autres normes sont év
 
 On s'intéresse à un algorithme qui détermine un exemple adversaire à partir d'une image donnée. On dit qu'un tel algorithme réalise une *attaque adversaire*.
 
-Une méthode d'attaque possible est la suivante. Introduisons $Conf_c$ la fonction qui à une image  associe la probabilité (selon le réseau) que l'image appartienne à la  catégorie $c$ ; et soit une image $img$, prédite de catégorie $c$ par le réseau. On cherche alors à minimiser par descente de gradient la fonction $Loss_1$ suivante\ :
-$$
-Loss_1 =
+Une méthode d'attaque possible est la suivante. Introduisons $Conf_c$ la fonction qui à une image  associe la probabilité (selon le réseau) que l'image appartienne à la  catégorie $c$ ; et soit une image $img$, prédite de catégorie $c$ par le réseau. On cherche alors à minimiser par descente de gradient sur $r$ initialisé à $0^n$ la fonction $Loss_1$ suivante\ :
+$$²
+Loss_1(r) =
 \begin{cases}
   \Vert r \Vert                 & \text{ si } Conf_c(img+r) \leqslant 0.2 \\
   Conf_c(img+r) + \Vert r \Vert & \text{ sinon.}
 \end{cases}
 $$
 
-Cette première fonction est expérimentalement peu satisfaisante car l'attaque échoue souvent\ : la perturbation reste "bloquée" en 0, et n'évolue pas. On pourrait corriger ce problème en initialisant la perturbation à une valeur aléatoire, mais cela enlèverait toute possibilité d'étudier la direction privilégiée par la descente de gradient. Pour pallier ce problème, on oblige alors la perturbation à grossir en ajoutant un troisième cas de figure quand $Conf_c(img+r) > 0.9$, c'est à dire quand la perturbation n'est pas du tout satisfaisante\ :
+Cette première fonction est expérimentalement peu satisfaisante car l'attaque échoue presque toujours\ : la perturbation $r$ reste "bloquée" en $0$, et n'évolue pas. On pourrait corriger ce problème en initialisant la perturbation à une faible valeur aléatoire, mais cela enlèverait toute possibilité d'étudier la direction privilégiée par la descente de gradient. Pour pallier ce problème, on oblige alors la perturbation à grossir en ajoutant un troisième cas de figure quand $Conf_c(img+r) > 0.9$, c'est à dire quand la perturbation n'est pas du tout satisfaisante\ :
 $$
-Loss_2 =
+Loss_2(r) =
 \begin{cases}
   \Vert r \Vert                 & \text{ si } Conf_c(img+r) \leqslant 0.2 \\
   Conf_c(img+r) + \Vert r \Vert & \text{ si } Conf_c(img+r) \leqslant 0.9 \\
@@ -43,7 +42,7 @@ Loss_2 =
 \end{cases}
 $$
 
-Cette deuxième fonction produit presque toujours un exemple adversaire pour un nombre d'étapes de descente de gradient suffisamment élevé (généralement 500 étapes suffisent), et c'est celle-ci qui sera utilisée par la suite.
+Cette deuxième fonction est plus satisfaisante, même si elle échoue parfois. Son taux de succès est cependant acceptable (et elle n'échoue jamais là où cela sera important), et c'est donc celle-ci qui sera utilisée par la suite.
 
 La Figure 1 montre le résultat d'une attaque adversaire\ : à gauche l'image originale, au milieu la perturbation et à droite l'image adversaire.
 
@@ -63,7 +62,7 @@ Les bases de données `MNIST` et `FashionMNIST` sont divisées de la manière su
 
 Les réseaux sont entraînés sur les images de `train`, et on utilisera systématiquement sur les images de `test` par la suite, afin de travailler sur des images que le réseau n'a jamais vues. Les images de `val` serviront à évaluer la généralisation des résultats obtenus.
 
-Sur les 10000 images de `test` de `MNIST`, toutes sauf 62 sont classifiées correctement par le réseau, et pour `FashionMNIST`, toutes sauf 917\ : la classification de cette dernière est significativement plus difficile.
+Sur les 10000 images de `test` de `MNIST`, toutes sauf 62 sont classifiées correctement par le réseau, et pour `FashionMNIST`, toutes sauf 876\ : la classification de cette dernière est significativement plus difficile.
 
 # 2. Résistance à une attaque
 
@@ -99,7 +98,7 @@ Pour quantifier plus précisément cette difficulté à attaquer une image, intr
 
 Pour chaque image, on essaie de quantifier la résistance, du réseau à une attaque adversaire. Plusieurs définitions sont possibles, par exemple la norme de la perturbation minimale mettant en échec le réseau\ :
 $$
-Res_\infty(img) = min \{\Vert r \Vert \; ; \; Pred(img+r) \neq Pred(img)\}
+Res_\infty(img) = min \big\{\Vert r \Vert \; ; \; Pred(img+r) \neq Pred(img)\big\}
 $$
 
 Cette expression de la résistance n'est que d'un faible intérêt en pratique, car incalculable. On utilisera donc plutôt les trois définitions suivantes\ :
@@ -119,27 +118,31 @@ $$
 Res_{min}(img) = \min \big\{N \in \mathbb{N} \; ; \; Conf_c(Pert_N(img)) < 0.2\big\}
 $$
 
+Dans les cas où l'attaque échoue, on prendra systématiquement $Res = + \infty$.
+
 ## 2.3 Une corrélation avec la justesse de la prédiction
 
 Les images attaquées dans l'Annexe B n'ont pas été choisies au hasard\ : les premières sont toutes classifiées correctement par le réseau, et les suivantes correspondent à des erreurs de classification.
 
-Ces résultats se généralisent\ : étudions la répartition des valeurs de la résistance sur des images correctement classifiées (notées **V**), et incorrectement classifiées (notées **F**) de `test`.
+Ces résultats se généralisent\ : étudions la répartition des valeurs de la résistance sur des images correctement classifiées (notées `V`), et incorrectement classifiées (notées `F`) de `test`.
 
-Sur `MNIST`, avec 250 images dans **V** et les 62 erreurs dans **F**\ :
+Sur `MNIST`, avec 500 images dans `V` et les 62 erreurs dans `F`\ :
 
-| `MNIST`      |   $Res_N$   | $Res_{max}$ | $Res_{min}$ |
-| ------------ | :--------------: | :--------------: | :--------------: |
-| 90% de **V** | $\geqslant$ 0.90 | $\geqslant$ 1.89 |  $\geqslant$ 83  |
-| 90% de **F** |  $<$ 0.75        |  $<$ 1.09        |   $<$ 58         |
+| `MNIST`      | $Res_N$  | $Res_{max}$ | $Res_{min}$ |
+| ------------ | :------: | :---------: | :---------: |
+| 90% de `V` |  > 0.97  |    > 2.8    |    > 109    |
+| 90% de `F` |  < 0.57  |    < 1.3    |    < 58     |
 
-Et sur `FashionMNIST`, avec 250 images dans **V** et dans **F**\ :
+Et sur `FashionMNIST`, avec 500 images dans `V` et dans `F`\ :
 
-| `FashionMNIST` |   $Res_N$   | $Res_{max}$ | $Res_{min}$ |
-| -------------- | :--------------: | :--------------: | :--------------: |
-| 80% de **V**   | $\geqslant$ 0.29 | $\geqslant$ 0.56 |  $\geqslant$ 25  |
-| 80% de **F**   |  $<$ 0.31        |  $<$ 0.55        |   $<$ 25         |
+| `FashionMNIST` | $Res_N$  | $Res_{max}$ | $Res_{min}$ |
+| -------------- | :------: | :---------: | :---------: |
+| 80% de `V`   |  > 0.28  |   > 0.544   |    > 26     |
+| 80% de `F`   |  < 0.29  |   < 0.543   |    < 25     |
 
-Selon que les images sont correctement classifiées ou non, la répartition des résistances est très inégale\ : on trouve des valeurs des résistances qui discriminent de part et d'autre respectivement 90% des images **V** et **F** dans le cas de `MNIST`, et 80% pour `FashionMNIST`.
+Selon que les images sont correctement classifiées ou non, la répartition des résistances est très inégale\ : on trouve des valeurs des résistances qui discriminent de part et d'autre respectivement 90% (voire 95%) des images `V` et `F` dans le cas de `MNIST`, et tout juste 80% pour `FashionMNIST`.
+
+On remarque également que l'attaque n'échoue pour aucune des images incorrectement classifiées de `MNIST`, et sur seulement 2 des 500 incorrectement classifiées de `FashionMNIST` étudiées. Inversement, l'attaque échoue sur respectivement 200 et 95 des images correctement classifiées de `MINST` et `FashionMINST`. Par la suite, le succès de l'attaque ne sera important que sur les images incorrectement classifiées, ce qui valide donc le choix de la fonction $Loss_2$ en partie 1.
 
 Une corrélation se dessine donc nettement entre la résistance et la justesse de la prédiction du réseau.
 
@@ -155,7 +158,7 @@ $\rangle$ *Expliquer ici rapidement les attaques utilisées*
 
 ### 2.4.2 Identification des exemples adversaires
 
-$\rangle$ *Étudier de la répartition des résistances sur les images __V__ (vraies images) et __A__ (exemples adversaires)*
+$\rangle$ *Étudier de la répartition des résistances sur les images `V` (vraies images) et `A` (exemples adversaires)*
 
 ### 4.4.2 Des exemples adversaires qui trompent cette reconnaissance
 
