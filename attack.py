@@ -5,7 +5,7 @@ Syntax: python -i attack.py MODEL DATASET
 """
 
 
-import sys
+import os, sys
 import torch
 from torch import nn
 from basics import to_Var, load_model
@@ -49,7 +49,7 @@ def confidence(image, category):
     return model.eval()(image)[0, category].data[0]
 
 
-# Returns the indices of the n first wrong prediction of the network.
+# Yields the indices of the first n wrong predictions.
 def errors(n=len(images)):
     i = 0
     l = len(images)
@@ -61,7 +61,7 @@ def errors(n=len(images)):
         i += 1
 
 
-# Returns the indices of the n first correct prediction of the network.
+# Yields the indices of the first n correct predictions.
 def not_errors(n=len(images)):
     i = 0
     l = len(images)
@@ -273,18 +273,23 @@ def error_count(labels, pred_labels, corr_labels, resistances, criterion):
 # ----------------------
 
 
-def build_test_database():
-    all_norms = []
-    all_confs = []
-    valid_preds = []
-    for i in range(10000):
-        print(i)
+def create_discriminator_database():
+    path = 'data/' + dataset + '/attacks.pt'
+    if not os.path.exists(path):
+        torch.save(([], [], []), path)
+    all_norms, all_confs, valid_preds = torch.load(path)
+    pos = len(all_norms)
+    for i in range(pos, 10000):
+        if i % 100 == 0:
+            data = (all_norms, all_confs, valid_preds)
+            torch.save(data, path)
+            print(i)
         image = load_image(i)
         label = load_label(i)
         pred_label = prediction(image)
         attack_result = attack(image, 500)
-        norms = attack_result[2]
-        confs = attack_result[3]
+        norms = attack_result[2][::10]
+        confs = attack_result[3][::10]
         all_norms += [norms]
         all_confs += [confs]
         valid_preds += [1 * (label == pred_label)]
@@ -293,19 +298,3 @@ def build_test_database():
     valid_preds = torch.Tensor(valid_preds).byte()
     data = (all_norms, all_confs, valid_preds)
     torch.save(data, 'data/' + model_name + '_test.pt')
-
-
-# DISCRIMINATOR NETWORK TRAINING
-# ------------------------------
-
-
-discriminator = nn.Sequential(
-    nn.Linear(2 * 21, 20),
-    nn.ReLU(True),
-    nn.Dropout(),
-    nn.Linear(20, 20),
-    nn.ReLU(True),
-    nn.Dropout(),
-    nn.Linear(20, 1),
-    nn.Softmax()
-)
