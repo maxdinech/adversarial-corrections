@@ -297,8 +297,8 @@ def create_discriminator_test_dataset():
         valid_pred = 1 * (pred_label == label)
         norms = attack_result[2][::10]
         confs = attack_result[3][::10]
-        all_norms = torch.cat((all_norms, torch.Tensor(norms)), 0)
-        all_confs = torch.cat((all_confs, torch.Tensor(confs)), 0)
+        all_norms = torch.cat((all_norms, torch.Tensor(norms).view(1, 50)), 0)
+        all_confs = torch.cat((all_confs, torch.Tensor(confs).view(1, 50)), 0)
         valid_preds = torch.cat((valid_preds, torch.Tensor([valid_pred]).byte()), 0)
     torch.save((all_norms, valid_preds), path + 'test_norms.pt')
     torch.save((all_confs, valid_preds), path + 'test_confs.pt')
