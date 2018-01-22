@@ -287,7 +287,7 @@ def create_discriminator_test_dataset():
     images, labels = data_loader.test(dataset_name)
     pos = len(valid_preds)
     for i in range(pos, len(images)):
-        if i % 100 == 0:
+        if i % 10 == 0:
             torch.save((all_norms, valid_preds), path + 'test_norms.pt')
             torch.save((all_confs, valid_preds), path + 'test_confs.pt')
             print(i)
