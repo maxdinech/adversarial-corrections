@@ -399,15 +399,25 @@ def create_discriminator_train_dataset_bis():
     def not_errors_bis(n=len(images)):
         i = 0
         l = len(images)
+        i1, i2, i3 = -1, -1, -1
         while i < l and n > 0:
             image = to_Var(images[i].view(1, 1, 28, 28))
             label = labels[i]
             if prediction(image) == label:
-                yield i
-                n -= 1
+                if i1 == -1:
+                    if i2 == -1:
+                        if i3 == -1:
+                            i3 = i
+                        else:
+                            i2 = i
+                    else:
+                        i1 = i
+                        yield i3, i2, i1
+                        i1, i2, i3 = -1, -1, -1
+                        n -= 1
             i += 1
 
-    for pos, (i, j, k, l) in enumerate(zip(errors_bis(), not_errors_bis())):
+    for pos, (i, (j, k, l)) in enumerate(zip(errors_bis(), not_errors_bis())):
         if 2 * pos < len(valid_preds):
             print(i, j)
         else:
