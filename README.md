@@ -50,19 +50,12 @@ Where `MODEL` is one of the available architectures, and `bool` decides wether t
 
 Let's call `Prediction` and `Confidence` the functions that respectively gives the digit prediction of the network and the confidence prediction of the network on the real label of the image. To trick a network, we want to determine a slightly modified version of the image , `adv_image`, such that `Prediction(adv_image)` is no longer equal to `Prediction(image)`. This is usually done by using `Confidence` as a loss function: The smaller it gets, the less the networks thinks that the modified image still corresponds to its initial digit.
 
-Attacking a network consists in determining a perturbation $r$ such that `model.forward(image + r)` gives a wrong prediction. We want to find a minimal perturbation for a given Euclidian norm.
+Attacking a network consists in determining a perturbation <img src="https://rawgit.com/maxdinech/fashion-mnist-attack (fetch/master/svgs/89f2e0d2d24bcf44db73aab8fc03252c.svg?invert_in_darkmode" align=middle width=7.873024500000003pt height=14.155350000000013pt/> such that `model.forward(image + r)` gives a wrong prediction. We want to find a minimal perturbation for a given Euclidian norm.
 
 
-To approach an acceptable value of $r$, we minimize the following function by a gradient descent.
+To approach an acceptable value of <img src="https://rawgit.com/maxdinech/fashion-mnist-attack (fetch/master/svgs/89f2e0d2d24bcf44db73aab8fc03252c.svg?invert_in_darkmode" align=middle width=7.873024500000003pt height=14.155350000000013pt/>, we minimize the following function by a gradient descent.
 
-$$
-Loss_2 =
-\begin{cases}
-  \Vert r \Vert                 & \text{if } Conf_c(img+r) \leq 0.2 \\
-  Conf_c(img+r) + \Vert r \Vert & \text{if } Conf_c(img+r) \leq 0.9 \\
-  Conf_c(img+r) - \Vert r \Vert & \text{else.}
-\end{cases}
-$$
+<p align="center"><img src="https://rawgit.com/maxdinech/fashion-mnist-attack (fetch/master/svgs/e6d8ef86207084f79e2dd4a3aae51b18.svg?invert_in_darkmode" align=middle width=426.86324999999994pt height=69.041775pt/></p>
 
 ### Instructions
 
@@ -73,5 +66,5 @@ $$
 - PyTorch
 - numpy
 - matplotlib
-- texlive, ghostscript and dvipng (for a fancy matplotlib $\LaTeX$ style prining)
+- texlive, ghostscript and dvipng (for a fancy matplotlib <img src="https://rawgit.com/maxdinech/fashion-mnist-attack (fetch/master/svgs/87181ad2b235919e0785dee664166921.svg?invert_in_darkmode" align=middle width=45.697245pt height=22.46574pt/> style prining)
 - tqdm
