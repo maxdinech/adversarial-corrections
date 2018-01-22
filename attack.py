@@ -1,11 +1,12 @@
 """
 Adversarial examples creation against a specified model
 
-Syntax: python -i attack.py MODEL DATASET
+Syntax: python -i attack.py MODEL DATASET SUBSET
 """
 
 
-import os, sys
+import os
+import sys
 import torch
 from torch import nn
 from basics import to_Var, load_model
@@ -16,14 +17,15 @@ import plot
 
 # Passed parameters
 model_name = sys.argv[1]
-dataset = sys.argv[2]
+dataset_name = sys.argv[2]
+subset = sys.argv[3]
 
 # Loads the model
-model = load_model(dataset, model_name)
+model = load_model(dataset_name, model_name)
 
 
-# Loads the database
-images, labels = data_loader.test(dataset)
+# Loads the specified subset from the specified database
+images, labels = getattr(data_loader, subset)(dataset_name)
 
 
 # BASIC FUNCTIONS
@@ -273,28 +275,30 @@ def error_count(labels, pred_labels, corr_labels, resistances, criterion):
 # ----------------------
 
 
-def create_discriminator_database():
-    path = 'data/' + dataset + '/attacks.pt'
-    if not os.path.exists(path):
-        torch.save(([], [], []), path)
-    all_norms, all_confs, valid_preds = torch.load(path)
+def create_discriminator_test_dataset():
+    path = 'data/' + dataset_name + '/'
+    if not os.path.exists(path + 'test_confs.pt'):
+        torch.save((torch.Tensor([]), torch.Tensor([])), path + 'test_confs.pt')
+    if not os.path.exists(path + 'test_norms.pt'):
+        torch.save((torch.Tensor([]), torch.Tensor([])), path + 'test_norms.pt')
+    all_norms, valid_preds = torch.load(path + 'test_norms.pt')
+    all_confs, _ = torch.load(path + 'test_confs.pt')
+    images, labels = data_loader.test(dataset_name)
     pos = len(all_norms)
-    for i in range(pos, 10000):
+    for i in range(pos, len(images)):
         if i % 100 == 0:
-            data = (all_norms, all_confs, valid_preds)
-            torch.save(data, path)
+            torch.save((all_norms, valid_preds), path + 'test_norms.pt')
+            torch.save((all_confs, valid_preds), path + 'test_confs.pt')
             print(i)
         image = load_image(i)
         label = load_label(i)
         pred_label = prediction(image)
         attack_result = attack(image, 500)
+        valid_pred = 1 * (pred_label == label)
         norms = attack_result[2][::10]
         confs = attack_result[3][::10]
-        all_norms += [norms]
-        all_confs += [confs]
-        valid_preds += [1 * (label == pred_label)]
-    all_norms = torch.Tensor(all_norms)
-    all_confs = torch.Tensor(all_confs)
-    valid_preds = torch.Tensor(valid_preds).byte()
-    data = (all_norms, all_confs, valid_preds)
-    torch.save(data, 'data/' + model_name + '_test.pt')
+        all_norms = torch.cat((all_norms, torch.Tensor(norms)), 0)
+        all_confs = torch.cat((all_confs, torch.Tensor(confs)), 0)
+        valid_preds = torch.cat((valid_preds, torch.Tensor([valid_pred]).byte()), 0)
+    torch.save((all_norms, valid_preds), path + 'test_norms.pt')
+    torch.save((all_confs, valid_preds), path + 'test_confs.pt')

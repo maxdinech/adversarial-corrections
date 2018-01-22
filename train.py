@@ -23,13 +23,13 @@ import data_loader
 
 # Passed parameters
 model_name = sys.argv[1]
-dataset = sys.argv[2]
+dataset_name = sys.argv[2]
 save_model = ((sys.argv + ["False"])[3] == "True")  # Default: save_model=False
 
 
-# Sizes of the train and test databases
+# Sizes of the train and validation databases
 nb_train = 50000
-nb_test = 10000
+nb_val = 10000
 
 
 # Model instanciation
@@ -47,8 +47,8 @@ optimizer = model.optimizer
 
 
 # Loads the train and test databases.
-train_images, train_labels = data_loader.train(dataset, nb_train)
-test_images, test_labels = data_loader.test(dataset, nb_test)
+train_images, train_labels = data_loader.train(dataset_name, nb_train)
+val_images, val_labels = data_loader.val(dataset_name, nb_val)
 
 train_loader = DataLoader(TensorDataset(train_images, train_labels),
                           batch_size=batch_size,
@@ -58,6 +58,7 @@ nb_batches = len(train_loader)
 
 
 # Computes the acccuracy of the model.
+# (computing the accuracy mini-batch after mini-batch avoids memory overload)
 def accuracy(images, labels):
     data = TensorDataset(images, labels)
     loader = DataLoader(data, batch_size=100, shuffle=False)
@@ -65,12 +66,12 @@ def accuracy(images, labels):
     for (x, y) in loader:
         y, y_pred = to_Var(y), model.eval()(to_Var(x))
         count += (y_pred.max(1)[1] == y).double().data.sum()
-        # .double(): ByteTensor sums are limited at 256!
+        # .double(): ByteTensor sums are limited at 256.
     return 100 * count / len(images)
 
 
 # Computes the loss of the model.
-# (computing the loss mini-match after mini-batch avoids memory overload)
+# (computing the loss mini-batch after mini-batch avoids memory overload)
 def big_loss(images, labels):
     data = TensorDataset(images, labels)
     loader = DataLoader(data, batch_size=100, shuffle=False)
@@ -86,7 +87,7 @@ def big_loss(images, labels):
 # ----------------
 
 # Prints the hyperparameters before the training.
-print("Train on {} samples, test on {} samples.".format(nb_train, nb_test))
+print("Train on {} samples, val on {} samples.".format(nb_train, nb_val))
 print("Epochs: {}, batch size: {}".format(epochs, batch_size))
 optimizer_name = type(optimizer).__name__
 print("Optimizer: {}, learning rate: {}".format(optimizer_name, lr))
@@ -104,8 +105,8 @@ def bar(data, e):
     return tqdm(data, desc=epoch, ncols=100, unit='b', bar_format=bar_format)
 
 
-train_accs, test_accs = [], []
-train_losses, test_losses = [], []
+train_accs, val_accs = [], []
+train_losses, val_losses = [], []
 
 try:
     # Main loop over each epoch
@@ -129,17 +130,17 @@ try:
         train_accs.append(train_acc)
         train_losses.append(train_loss)
 
-        # Calculates accuracy and loss on the test database.
-        test_acc = accuracy(test_images, test_labels)
-        test_loss = big_loss(test_images, test_labels)
-        test_accs.append(test_acc)
-        test_losses.append(test_loss)
+        # Calculates accuracy and loss on the validation database.
+        val_acc = accuracy(val_images, val_labels)
+        val_loss = big_loss(val_images, val_labels)
+        val_accs.append(val_acc)
+        val_losses.append(val_loss)
 
         # Prints the losses and accs at the end of each epoch.
         print("  └-> train_loss: {:6.4f} - train_acc: {:5.2f}%  ─  "
               .format(train_loss, train_acc), end='')
-        print("test_loss: {:6.4f} - test_acc: {:5.2f}%"
-              .format(test_loss, test_acc))
+        print("val_loss: {:6.4f} - val_acc: {:5.2f}%"
+              .format(val_loss, val_acc))
 
 except KeyboardInterrupt:
     pass
@@ -150,9 +151,9 @@ if save_model:
     if not os.path.exists(path):
         os.mkdir(path)
     file = open(path + 'results.txt', 'a')
-    file.write("{}: train_acc: {:5.2f}%  -  test_acc: {:5.2f}%\n"
-               .format(model_name, train_acc, test_acc))
+    file.write("{}: train_acc: {:5.2f}%  -  val_acc: {:5.2f}%\n"
+               .format(model_name, train_acc, val_acc))
     torch.save(model, path + model_name + '.pt')
     # Saves the accs history graph
-    plot.train_history(train_accs, test_accs)
+    plot.train_history(train_accs, val_accs)
     plt.savefig(path + model_name + ".png", transparent=True)
