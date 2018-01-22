@@ -279,9 +279,9 @@ def create_discriminator_test_dataset():
     path = 'data/' + dataset_name + '/'
     empty = torch.Tensor([])
     if not os.path.exists(path + 'test_confs.pt'):
-        torch.save((empty.byte(), empty), path + 'test_confs.pt')
+        torch.save((empty, empty.byte()), path + 'test_confs.pt')
     if not os.path.exists(path + 'test_norms.pt'):
-        torch.save((empty.byte(), empty), path + 'test_norms.pt')
+        torch.save((empty, empty.byte()), path + 'test_norms.pt')
     all_norms, valid_preds = torch.load(path + 'test_norms.pt')
     all_confs, _ = torch.load(path + 'test_confs.pt')
     images, labels = data_loader.test(dataset_name)
@@ -309,9 +309,9 @@ def create_discriminator_train_dataset():
     path = 'data/' + dataset_name + '/'
     empty = torch.Tensor([])
     if not os.path.exists(path + 'train_confs.pt'):
-        torch.save((empty.byte(), empty), path + 'train_confs.pt')
+        torch.save((empty, empty.byte()), path + 'train_confs.pt')
     if not os.path.exists(path + 'train_norms.pt'):
-        torch.save((empty.byte(), empty), path + 'train_norms.pt')
+        torch.save((empty, empty.byte()), path + 'train_norms.pt')
     all_norms, valid_preds = torch.load(path + 'train_norms.pt')
     all_confs, _ = torch.load(path + 'train_confs.pt')
 
