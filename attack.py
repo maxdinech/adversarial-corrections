@@ -277,28 +277,71 @@ def error_count(labels, pred_labels, corr_labels, resistances, criterion):
 
 def create_discriminator_test_dataset():
     path = 'data/' + dataset_name + '/'
+    empty = torch.Tensor([])
     if not os.path.exists(path + 'test_confs.pt'):
-        torch.save((torch.Tensor([]), torch.Tensor([])), path + 'test_confs.pt')
+        torch.save((empty, empty), path + 'test_confs.pt')
     if not os.path.exists(path + 'test_norms.pt'):
-        torch.save((torch.Tensor([]), torch.Tensor([])), path + 'test_norms.pt')
+        torch.save((empty, empty), path + 'test_norms.pt')
     all_norms, valid_preds = torch.load(path + 'test_norms.pt')
     all_confs, _ = torch.load(path + 'test_confs.pt')
     images, labels = data_loader.test(dataset_name)
-    pos = len(all_norms)
+    pos = len(valid_preds)
     for i in range(pos, len(images)):
         if i % 100 == 0:
             torch.save((all_norms, valid_preds), path + 'test_norms.pt')
             torch.save((all_confs, valid_preds), path + 'test_confs.pt')
             print(i)
-        image = load_image(i)
-        label = load_label(i)
+        image = to_Var(images[i].view(1, 1, 28, 28))
+        label = labels[i]
         pred_label = prediction(image)
         attack_result = attack(image, 500)
-        valid_pred = 1 * (pred_label == label)
-        norms = attack_result[2][::10]
-        confs = attack_result[3][::10]
-        all_norms = torch.cat((all_norms, torch.Tensor(norms).view(1, 50)), 0)
-        all_confs = torch.cat((all_confs, torch.Tensor(confs).view(1, 50)), 0)
-        valid_preds = torch.cat((valid_preds, torch.Tensor([valid_pred]).byte()), 0)
+        norms = torch.Tensor(attack_result[2][::10]).view(1, 50)
+        confs = torch.Tensor(attack_result[3][::10]).view(1, 50)
+        valid_pred = torch.Tensor(1 * (pred_label == label)).byte()
+        all_norms = torch.cat((all_norms, norms), 0)
+        all_confs = torch.cat((all_confs, confs), 0)
+        valid_preds = torch.cat((valid_preds, valid_pred), 0)
     torch.save((all_norms, valid_preds), path + 'test_norms.pt')
     torch.save((all_confs, valid_preds), path + 'test_confs.pt')
+
+
+def create_discriminator_train_dataset():
+    path = 'data/' + dataset_name + '/'
+    empty = torch.Tensor([])
+    if not os.path.exists(path + 'train_confs.pt'):
+        torch.save((empty, empty), path + 'train_confs.pt')
+    if not os.path.exists(path + 'train_norms.pt'):
+        torch.save((empty, empty), path + 'train_norms.pt')
+    all_norms, valid_preds = torch.load(path + 'train_norms.pt')
+    all_confs, _ = torch.load(path + 'train_confs.pt')
+
+    train_images, train_labels = data_loader.train(dataset_name)
+    val_images, val_labels = data_loader.val(dataset_name)
+    labels = torch.cat((train_labels, val_labels), 0)
+    images = torch.cat((train_images, val_images), 0)
+
+    pos = len(valid_preds) // 2
+
+    for pos, (i, j) in enumerate(zip(errors(), not_errors())):
+        if 2 * pos < len(valid_preds):
+            pass
+        else:
+            if len(valid_preds) % 100 == 0:
+                torch.save((all_norms, valid_preds), path + 'train_norms.pt')
+                torch.save((all_confs, valid_preds), path + 'train_confs.pt')
+                print(len(valid_preds))
+            image_e = to_Var(images[i].view(1, 1, 28, 28))
+            image_v = to_Var(images[j].view(1, 1, 28, 28))
+            label_e, label_v = labels[i], labels[j]
+            attack_result_e = attack(image_e, 500)
+            attack_result_v = attack(image_v, 500)
+            norms_e = torch.Tensor(attack_result_e[2][::10]).view(1, 50)
+            confs_e = torch.Tensor(attack_result_e[3][::10]).view(1, 50)
+            norms_v = torch.Tensor(attack_result_v[2][::10]).view(1, 50)
+            confs_v = torch.Tensor(attack_result_v[3][::10]).view(1, 50)
+            valid_pred = torch.Tensor([[0], [1]]).byte()
+            all_norms = torch.cat((all_norms, norms_e, norms_v), 0)
+            all_confs = torch.cat((all_confs, confs_e, confs_v), 0)
+            valid_preds = torch.cat((valid_preds, valid_pred), 0)
+    torch.save((all_norms, valid_preds), path + 'train_norms.pt')
+    torch.save((all_confs, valid_preds), path + 'train_confs.pt')
