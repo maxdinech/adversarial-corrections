@@ -418,7 +418,7 @@ def create_discriminator_train_dataset_bis():
             i += 1
 
     for pos, (i, (j, k, l)) in enumerate(zip(errors_bis(), not_errors_bis())):
-        if 2 * pos < len(valid_preds):
+        if 4 * pos < len(valid_preds):
             print(i, j, k, l)
         else:
             if len(valid_preds) % 100 == 0:
@@ -427,7 +427,7 @@ def create_discriminator_train_dataset_bis():
                 print()
                 print(len(valid_preds))
                 print()
-            print(i, j)
+            print(i, j, k, l)
             image_e = to_Var(images[i].view(1, 1, 28, 28))
             image_v1 = to_Var(images[j].view(1, 1, 28, 28))
             image_v2 = to_Var(images[k].view(1, 1, 28, 28))
