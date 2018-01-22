@@ -4,13 +4,15 @@ Networks training.
 Syntax : python train.py MODEL DATASET SAVE
 
 MODEL is either AlexNet, AlexNet_bn, VGG or VGG_bn (see architectures.py)
-DATASET is either : 
+
+DATASET is either :
     - MNIST
     - FashionMNIST
     - MNISTnorms
     - MNISTconfs
     - FashionMNISTnorms
     - FashionMNISTconfs
+
 If SAVE is True, the trained model is saved in models/DATASET/.
 
 """
@@ -153,7 +155,7 @@ except KeyboardInterrupt:
 
 # Saves the network if stated.
 if save_model:
-    path = 'models/' + dataset + '/'
+    path = 'models/' + dataset_name + '/'
     if not os.path.exists(path):
         os.mkdir(path)
     file = open(path + 'results.txt', 'a')
