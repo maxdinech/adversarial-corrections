@@ -320,9 +320,29 @@ def create_discriminator_train_dataset():
     images = torch.cat((train_images, val_images), 0)
     labels = torch.cat((train_labels, val_labels), 0)
 
+    def errors_bis(n=len(images)):
+        i = 0
+        l = len(images)
+        while i < l and n > 0:
+            image, label = load_image(i), load_label(i)
+            if prediction(image) != label:
+                yield i
+                n -= 1
+            i += 1
+
+    def not_errors_bis(n=len(images)):
+        i = 0
+        l = len(images)
+        while i < l and n > 0:
+            image, label = load_image(i), load_label(i)
+            if prediction(image) == label:
+                yield i
+                n -= 1
+            i += 1
+
     pos = len(valid_preds) // 2
 
-    for pos, (i, j) in enumerate(zip(errors(), not_errors())):
+    for pos, (i, j) in enumerate(zip(errors_bis(), not_errors_bis())):
         if 2 * pos < len(valid_preds):
             pass
         else:
