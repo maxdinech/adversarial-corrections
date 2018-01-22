@@ -305,6 +305,35 @@ def create_discriminator_test_dataset():
     torch.save((all_confs, valid_preds), path + 'test_confs.pt')
 
 
+def create_discriminator_test_dataset_1000(n):
+    path = 'data/' + dataset_name + '/'
+    empty = torch.Tensor([])
+    if not os.path.exists(path + 'test_confs' + str(n) + '.pt'):
+        torch.save((empty, empty.byte()), path + 'test_confs' + str(n) + '.pt')
+    if not os.path.exists(path + 'test_norms' + str(n) + '.pt'):
+        torch.save((empty, empty.byte()), path + 'test_norms' + str(n) + '.pt')
+    all_norms, valid_preds = torch.load(path + 'test_norms' + str(n) + '.pt')
+    all_confs, _ = torch.load(path + 'test_confs' + str(n) + '.pt')
+    images, labels = data_loader.test(dataset_name)
+    for i in range(n, n + 1000):
+        if i % 10 == 0:
+            torch.save((all_norms, valid_preds), path + 'test_norms' + str(n) + '.pt')
+            torch.save((all_confs, valid_preds), path + 'test_confs' + str(n) + '.pt')
+            print(i, '-', len(valid_preds), len(all_norms), len(all_confs))
+        image = to_Var(images[i].view(1, 1, 28, 28))
+        label = labels[i]
+        pred_label = prediction(image)
+        attack_result = attack(image, 500)
+        norms = torch.Tensor(attack_result[2][::10]).view(1, 50)
+        confs = torch.Tensor(attack_result[3][::10]).view(1, 50)
+        valid_pred = torch.Tensor([1 * (pred_label == label)]).byte()
+        all_norms = torch.cat((all_norms, norms), 0)
+        all_confs = torch.cat((all_confs, confs), 0)
+        valid_preds = torch.cat((valid_preds, valid_pred), 0)
+    torch.save((all_norms, valid_preds), path + 'test_norms' + str(n) + '.pt')
+    torch.save((all_confs, valid_preds), path + 'test_confs' + str(n) + '.pt')
+
+
 def create_discriminator_train_dataset():
     path = 'data/' + dataset_name + '/'
     empty = torch.Tensor([])
@@ -365,89 +394,6 @@ def create_discriminator_train_dataset():
             valid_pred = torch.Tensor([0, 1]).byte()
             all_norms = torch.cat((all_norms, norms_e, norms_v), 0)
             all_confs = torch.cat((all_confs, confs_e, confs_v), 0)
-            valid_preds = torch.cat((valid_preds, valid_pred), 0)
-    torch.save((all_norms, valid_preds), path + 'train_norms.pt')
-    torch.save((all_confs, valid_preds), path + 'train_confs.pt')
-
-
-def create_discriminator_train_dataset_bis():
-    path = 'data/' + dataset_name + '/'
-    empty = torch.Tensor([])
-    if not os.path.exists(path + 'train_confs.pt'):
-        torch.save((empty, empty.byte()), path + 'train_confs.pt')
-    if not os.path.exists(path + 'train_norms.pt'):
-        torch.save((empty, empty.byte()), path + 'train_norms.pt')
-    all_norms, valid_preds = torch.load(path + 'train_norms.pt')
-    all_confs, _ = torch.load(path + 'train_confs.pt')
-
-    train_images, train_labels = data_loader.train(dataset_name)
-    val_images, val_labels = data_loader.val(dataset_name)
-    images = torch.cat((train_images, val_images), 0)
-    labels = torch.cat((train_labels, val_labels), 0)
-
-    def errors_bis(n=len(images)):
-        i = 0
-        l = len(images)
-        while i < l and n > 0:
-            image = to_Var(images[i].view(1, 1, 28, 28))
-            label = labels[i]
-            if prediction(image) != label:
-                yield i
-                n -= 1
-            i += 1
-
-    def not_errors_bis(n=len(images)):
-        i = 0
-        l = len(images)
-        i1, i2, i3 = -1, -1, -1
-        while i < l and n > 0:
-            image = to_Var(images[i].view(1, 1, 28, 28))
-            label = labels[i]
-            if prediction(image) == label:
-                if i1 == -1:
-                    if i2 == -1:
-                        if i3 == -1:
-                            i3 = i
-                        else:
-                            i2 = i
-                    else:
-                        i1 = i
-                        yield i3, i2, i1
-                        i1, i2, i3 = -1, -1, -1
-                        n -= 1
-            i += 1
-
-    for pos, (i, (j, k, l)) in enumerate(zip(errors_bis(), not_errors_bis())):
-        if 4 * pos < len(valid_preds):
-            print(i, j, k, l)
-        else:
-            if len(valid_preds) % 100 == 0:
-                torch.save((all_norms, valid_preds), path + 'train_norms.pt')
-                torch.save((all_confs, valid_preds), path + 'train_confs.pt')
-                print()
-                print(len(valid_preds))
-                print()
-            print(i, j, k, l)
-            image_e = to_Var(images[i].view(1, 1, 28, 28))
-            image_v1 = to_Var(images[j].view(1, 1, 28, 28))
-            image_v2 = to_Var(images[k].view(1, 1, 28, 28))
-            image_v3 = to_Var(images[l].view(1, 1, 28, 28))
-            label_e, label_v1, label_v2, label_v3 = labels[i], labels[j], labels[k], labels[l]
-            attack_result_e = attack(image_e, 500)
-            attack_result_v1 = attack(image_v1, 500)
-            attack_result_v2 = attack(image_v2, 500)
-            attack_result_v3 = attack(image_v3, 500)
-            norms_e = torch.Tensor(attack_result_e[2][::10]).view(1, 50)
-            confs_e = torch.Tensor(attack_result_e[3][::10]).view(1, 50)
-            norms_v1 = torch.Tensor(attack_result_v1[2][::10]).view(1, 50)
-            confs_v1 = torch.Tensor(attack_result_v1[3][::10]).view(1, 50)
-            norms_v2 = torch.Tensor(attack_result_v2[2][::10]).view(1, 50)
-            confs_v2 = torch.Tensor(attack_result_v2[3][::10]).view(1, 50)
-            norms_v3 = torch.Tensor(attack_result_v3[2][::10]).view(1, 50)
-            confs_v3 = torch.Tensor(attack_result_v3[3][::10]).view(1, 50)
-            valid_pred = torch.Tensor([0, 1, 1, 1]).byte()
-            all_norms = torch.cat((all_norms, norms_e, norms_v1, norms_v2, norms_v3), 0)
-            all_confs = torch.cat((all_confs, confs_e, confs_v1, confs_v2, confs_v3), 0)
             valid_preds = torch.cat((valid_preds, valid_pred), 0)
     torch.save((all_norms, valid_preds), path + 'train_norms.pt')
     torch.save((all_confs, valid_preds), path + 'train_confs.pt')
