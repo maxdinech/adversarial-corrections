@@ -419,7 +419,7 @@ def create_discriminator_train_dataset_bis():
 
     for pos, (i, (j, k, l)) in enumerate(zip(errors_bis(), not_errors_bis())):
         if 2 * pos < len(valid_preds):
-            print(i, j)
+            print(i, j, k, l)
         else:
             if len(valid_preds) % 100 == 0:
                 torch.save((all_norms, valid_preds), path + 'train_norms.pt')
