@@ -317,8 +317,8 @@ def create_discriminator_train_dataset():
 
     train_images, train_labels = data_loader.train(dataset_name)
     val_images, val_labels = data_loader.val(dataset_name)
-    labels = torch.cat((train_labels, val_labels), 0)
     images = torch.cat((train_images, val_images), 0)
+    labels = torch.cat((train_labels, val_labels), 0)
 
     pos = len(valid_preds) // 2
 
@@ -339,7 +339,7 @@ def create_discriminator_train_dataset():
             confs_e = torch.Tensor(attack_result_e[3][::10]).view(1, 50)
             norms_v = torch.Tensor(attack_result_v[2][::10]).view(1, 50)
             confs_v = torch.Tensor(attack_result_v[3][::10]).view(1, 50)
-            valid_pred = torch.Tensor([[0], [1]]).byte()
+            valid_pred = torch.Tensor([0, 1]).byte()
             all_norms = torch.cat((all_norms, norms_e, norms_v), 0)
             all_confs = torch.cat((all_confs, confs_e, confs_v), 0)
             valid_preds = torch.cat((valid_preds, valid_pred), 0)
