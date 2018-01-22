@@ -7,6 +7,29 @@ import torch
 from torch import nn
 
 
+class Discriminator(nn.Module):
+    def __init__(self):
+        super(Discriminator, self).__init__()
+        # Training hyperparameters
+        self.lr = 5e-4
+        self.epochs = 100
+        self.batch_size = 64
+        self.classifier = nn.Sequential(
+            nn.Linear(50, 120),
+            nn.ReLU(inplace=True),
+            nn.Dropout(),
+            nn.Linear(120, 1),
+            nn.Softmax()
+        )
+        # Optimizer and loss function
+        self.optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
+        self.loss_fn = nn.CrossEntropyLoss()
+
+    def forward(self, x):
+        x = self.classifier(x)
+        return x
+
+
 class AlexNet(nn.Module):
     def __init__(self):
         super(AlexNet, self).__init__()
