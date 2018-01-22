@@ -47,7 +47,7 @@ def load(dataset, subset, nb_elements):
         file = subset + '_' + dataset[-5:]
         values, labels = torch.load(folder + file)
         return values, labels
-    elif if dataset in ['MNIST', 'FashionMNIST']:
+    elif dataset in ['MNIST', 'FashionMNIST']:
         path = 'data/' + dataset + '/' + subset + '.pt'
         if not os.path.exists(path):
             create(dataset)
