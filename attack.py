@@ -342,16 +342,17 @@ def create_discriminator_train_dataset():
                 n -= 1
             i += 1
 
-    pos = len(valid_preds) // 2
-
     for pos, (i, j) in enumerate(zip(errors_bis(), not_errors_bis())):
+        print(i, j)
         if 2 * pos < len(valid_preds):
             pass
         else:
             if len(valid_preds) % 100 == 0:
                 torch.save((all_norms, valid_preds), path + 'train_norms.pt')
                 torch.save((all_confs, valid_preds), path + 'train_confs.pt')
+                print()
                 print(len(valid_preds))
+                print()
             image_e = to_Var(images[i].view(1, 1, 28, 28))
             image_v = to_Var(images[j].view(1, 1, 28, 28))
             label_e, label_v = labels[i], labels[j]
