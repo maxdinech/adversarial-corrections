@@ -290,7 +290,7 @@ def create_discriminator_test_dataset():
         if i % 10 == 0:
             torch.save((all_norms, valid_preds), path + 'test_norms.pt')
             torch.save((all_confs, valid_preds), path + 'test_confs.pt')
-            print(i)
+            print(i, '-', len(valid_preds), len(all_norms), len(all_confs))
         image = to_Var(images[i].view(1, 1, 28, 28))
         label = labels[i]
         pred_label = prediction(image)
