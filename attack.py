@@ -324,7 +324,8 @@ def create_discriminator_train_dataset():
         i = 0
         l = len(images)
         while i < l and n > 0:
-            image, label = load_image(i), load_label(i)
+            image = to_Var(images[i].view(1, 1, 28, 28))
+            label = labels[i]
             if prediction(image) != label:
                 yield i
                 n -= 1
@@ -334,7 +335,8 @@ def create_discriminator_train_dataset():
         i = 0
         l = len(images)
         while i < l and n > 0:
-            image, label = load_image(i), load_label(i)
+            image = to_Var(images[i].view(1, 1, 28, 28))
+            label = labels[i]
             if prediction(image) == label:
                 yield i
                 n -= 1
