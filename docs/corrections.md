@@ -132,9 +132,7 @@ Dans les cas où l'attaque échoue, on prendra systématiquement $Res = + \infty
 
 ## 2.3 Une corrélation avec la justesse de la prédiction
 
-Les images attaquées dans l'Annexe B n'ont pas été choisies au hasard\ : les premières sont toutes classifiées correctement par le réseau, et les suivantes correspondent à des erreurs de classification.
-
-Étudions la généralisation de ces résultats, en observant la répartition des valeurs de la résistance sur des images correctement classifiées (notées `V`), et incorrectement classifiées (notées `F`) de `test`.
+Les images attaquées dans l'Annexe B n'ont pas été choisies au hasard\ : les premières sont toutes classifiées correctement par le réseau, et les suivantes correspondent à des erreurs de classification. Étudions la généralisation de ces résultats, en observant la répartition des valeurs de la résistance sur des images correctement classifiées (notées `V`), et incorrectement classifiées (notées `F`) de `test`.
 
 Sur `MNIST`, avec 500 images dans `V` et les 62 erreurs dans `F`\ :
 
@@ -164,15 +162,15 @@ On observe des résultats similaires dans le cas des attaques adversaires\ : les
 
 La partie 1 présente une méthode efficace de génération d'exemple adversaire. On souhaite cependant se prémunir contre le plus grand nombre d'attaques possibles, et c'est pourquoi on confiera la génération d'exemples adversaires à la bibliothèque `CleverHans` [5].
 
-$\rangle$ *Expliquer ici rapidement les attaques utilisées*
+$\rangle$ *Expliquer ici rapidement les attaques utilisées.*
 
 ### 2.4.2 Identification des exemples adversaires
 
-$\rangle$ *Étudier de la répartition des résistances sur les images `V` (vraies images) et `A` (exemples adversaires)*
+$\rangle$ *Étudier de la répartition des résistances sur les images `V` (vraies images) et `A` (exemples adversaires).*
 
 ### 4.4.2 Des exemples adversaires qui trompent cette méthode ?
 
-$\rangle$ *À compléter*
+$\rangle$ *À compléter.*
 
 
 # 3. Une nouvelle expression de l'assurance d'un réseau
@@ -240,24 +238,28 @@ En sortie du réseau, on aura un flottant compris entre 0 et 1, qui indiquera un
 
 On construit ces bases de données à partir des images de `train` et `val` uniquement, de sorte à observer la généralisation des résultats sur les images de `test`, sur lesquelles le but final est d'améliorer la prédiction du réseau classificateur.
 
+On appelera `norms` et `confs` ces bases de données.
+
 ### 5.3.2 Structure et entraînement du réseau
 
 On utilise un réseau de neurones très simple : 50 neurones sur la couche d'entrée, 30 neurones sur la couche intermédiaire, et un seul neurone en couche de sortie. On utilisera la fonction de transfert $ReLU$ pour les deux premières couches, et une fonction $Softmax$ pour le neurone de sortie.
 
-On entraîne ce réseau avec l'optimiseur `Adam`, avec un taux d'apprentissage $\eta = 10^{-2}$.
+On entraîne ce réseau en 40 étapes (*epochs*), avec des paquets de taille 32 (*mini-batches*). On utilise $Cross-entropy$ comme fonction d'erreur, et l'algorithme `Adam` pour réaliser la descente de gradient, avec un taux d'apprentissage $\eta = 5 \cdot 10^{-4}$.
 
 ### 5.3.3 Généralisation des résultats obtenus
 
-Observons enfin les résultats obtenus par le réseau discriminateur sur les 10000 images de `test`\ :
+Observons enfin les résultats obtenus par le réseau discriminateur sur les 10000 images de `test`, en fonction du problème étudié (`MNIST` ou `FashionMNIST`), et de la base de discriminateur utilisée (`norms` ou `confs`)\ :
 
-| Erreurs        | Faux positifs | Faux négatifs | Total |
-| -------------- | :-----------: | :-----------: | :---: |
-| `MNIST`        |               |               |       |
-| `FashionMNIST` |               |               |       |
+| Erreurs                  | Faux positifs | Faux négatifs | Total |
+| ------------------------ | :-----------: | :-----------: | :---: |
+| `MNIST` (`norms`)        |     412       |       4       |  416  |
+| `MNIST` (`confs`)        |     360       |       4       |  364  |
+| `FashionMNIST` (`norms`) |     2424      |      109      |  2533 |
+| `FashionMNIST` (`confs`) |     2071      |      130      |  2201 |
 
 On appelle *faux positifs* les images correctement classifiées, mais prédites comme des erreurs par le discriminateur\ ; et *faux négatifs* les images oncorrectement classifiées mais prédites comme des images correctement classifiées par le doscriminateur.
 
-$\rangle$ *À compléter*
+$\rangle$ *Note : ces résultats ne sont pas du tout satisfaisants pour le moment, cette partie est donc encore en construction.*
 
 En appliquant cette méthode pour affiner la prédiction du réseau, on obtient finalement\ :
 
@@ -266,7 +268,7 @@ En appliquant cette méthode pour affiner la prédiction du réseau, on obtient 
 | `MNIST`        |              62               |                             |
 | `FashionMNIST` |              876              |                             |
 
-$\rangle$ *À compléter*
+$\rangle$ *Ajouter une conclusion.*
 
 
 # Bibliographie
@@ -285,7 +287,7 @@ $\rangle$ *À compléter*
 \newpage
 # A. Structure des réseaux utilisées
 
-$\rangle$ *À compléter*
+$\rangle$ *À compléter.*
 
 
 \newpage
