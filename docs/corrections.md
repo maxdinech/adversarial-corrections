@@ -250,25 +250,23 @@ On entraîne ce réseau en 40 étapes (*epochs*), avec des paquets de taille 32 
 
 Observons enfin les résultats obtenus par le réseau discriminateur sur les 10000 images de `test`, en fonction du problème étudié (`MNIST` ou `FashionMNIST`), et de la base de discriminateur utilisée (`norms` ou `confs`)\ :
 
-| Erreurs                  | Faux positifs | Faux négatifs | Total |
-| ------------------------ | :-----------: | :-----------: | :---: |
-| `MNIST` (`norms`)        |     412       |       4       |  416  |
-| `MNIST` (`confs`)        |     360       |       4       |  364  |
-| `FashionMNIST` (`norms`) |     2424      |      109      |  2533 |
-| `FashionMNIST` (`confs`) |     2071      |      130      |  2201 |
+| Erreurs                  | Faux positifs | Faux négatifs |    Total    |
+| ------------------------ | :-----------: | :-----------: | :---------: |
+| `MNIST` (`norms`)        |     412       |       4       |  416 (4.2%) |
+| `MNIST` (`confs`)        |     360       |       4       |  364 (3.6%) |
+| `FashionMNIST` (`norms`) |     2424      |      109      |  2533 (25%) |
+| `FashionMNIST` (`confs`) |     2071      |      130      |  2201 (22%) |
 
-On appelle *faux positifs* les images correctement classifiées, mais prédites comme des erreurs par le discriminateur\ ; et *faux négatifs* les images oncorrectement classifiées mais prédites comme des images correctement classifiées par le doscriminateur.
+On appelle *faux positifs* les images correctement classifiées, mais prédites comme des erreurs par le discriminateur\ ; et *faux négatifs* les images incorrectement classifiées mais prédites comme des images correctement classifiées par le doscriminateur.
 
-$\rangle$ *Note : ces résultats ne sont pas du tout satisfaisants pour le moment, cette partie est donc encore en construction.*
+Ces résultats sont décevants : on retrouve une separation d'une finesse du même ordre de celle partie 2.3, à la nuance près que cette séparation a cette fois-ci été faite sans connaître au préalable les images de `test`.
 
-En appliquant cette méthode pour affiner la prédiction du réseau, on obtient finalement\ :
+Pour que la correction ait un intérêt, il faut que la précision du réseau discriminateur soit plus fine que celle du réseau classificateur, ce qui n'est manifestement pas le cas ici\ : respectivement 364 contre 62 erreurs et 2201 contre 876 erreurs sur les 10000 images de `test` pour `MNIST` et `FashionMNIST`. On en déduit que les bases de données `norms` et `confs` ne contiennent pas assez d'informations pour réaliser finement cette discrimination entre images correctement classifiées, et incorrectement classifiées.
 
-| Erreurs        | Initial (sans discriminateur) | Final (avec discriminateur) |
-| -------------- | :---------------------------: | :-------------------------: |
-| `MNIST`        |              62               |                             |
-| `FashionMNIST` |              876              |                             |
 
-$\rangle$ *Ajouter une conclusion.*
+# Conclusion
+
+$\rangle$ *À compléter.*
 
 
 # Bibliographie
@@ -285,10 +283,23 @@ $\rangle$ *Ajouter une conclusion.*
 
 
 \newpage
-# A. Structure des réseaux utilisées
+# A. Structure et entraînement des réseaux classificateurs
 
-$\rangle$ *À compléter.*
+Les deux réseaux ont la même architecture, inspirée de AlexNet :
 
+- Entrée : $32 \times 32$
+- Convolution : 32 couches, noyau $5 \times 5$
+- ReLU
+- MaxPool : noyau $2 \times 2$
+- Convolution : 64 couches, noyau $3 \times 3$
+- ReLU
+- MaxPool : noyau $2 \times 2$
+- Dropout
+- Couche complète : $64 \times 5 \times 5$ $\rightarrow$ 120
+- ReLU
+- Dropout
+- Couche complète : 120 $\rightarrow$ 10
+- Softmax
 
 \newpage
 # B. Quelques attaques supplémentaires
