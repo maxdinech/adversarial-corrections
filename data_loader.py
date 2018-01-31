@@ -43,10 +43,12 @@ def create(dataset):
 def load(dataset, subset, nb_elements):
     if dataset in ['MNISTnorms', 'FashionMNISTnorms',
                    'MNISTconfs', 'FashionMNISTconfs']:
+        if subset == 'val':
+            subset = 'test'
         folder = 'data/' + dataset[:-5] + '/'
-        file = subset + '_' + dataset[-5:]
+        file = subset + '_' + dataset[-5:] + '.pt'
         values, labels = torch.load(folder + file)
-        return values, labels
+        return values, labels.long()
     elif dataset in ['MNIST', 'FashionMNIST']:
         path = 'data/' + dataset + '/' + subset + '.pt'
         if not os.path.exists(path):

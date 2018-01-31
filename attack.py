@@ -117,8 +117,8 @@ def attack(image, steps=500, p=2, lr=1e-3):
         adv_image = attacker.forward(image)
         conf = confidence(adv_image, digit)
         norm = (adv_image - image).norm(p).data[0]
-        print("Step {:4} -- conf: {:0.4f}, L_{}(r): {:0.20f}"
-              .format(i, conf, p, norm), end='\r')
+        print(f"Step {i:4} -- conf: {conf:0.4f}, L_{p}(r): {norm:0.20f}",
+              end='\r')
         norms.append(norm)
         confs.append(conf)
     print()
@@ -146,8 +146,8 @@ def attack_break(image, max_steps=500, p=2, lr=1e-3):
         adv_image = attacker.forward(image)
         conf = confidence(adv_image, digit)
         norm = (adv_image - image).norm(p).data[0]
-        print("Step {:4} -- conf: {:0.4f}, L_{}(r): {:0.10f}"
-              .format(steps, conf, p, norm), end='\r')
+        print(f"Step {steps:4} -- conf: {conf:0.4f}, L_{p}(r): {norm:0.10f}",
+              end='\r')
         norms.append(norm)
         confs.append(conf)
     print()
@@ -158,7 +158,7 @@ def attack_graph(image_id, steps=500, p=2, lr=1e-3):
     image = load_image(image_id)
     success, adv_image, norms, confs = attack(image, steps, p, lr)
     plot.attack_history(norms, confs)
-    plt.savefig("../car-crash/docs/images/attack_{}.png".format(image_id),
+    plt.savefig(f"../car-crash/docs/images/attack_{image_id}.png",
                 transparent=True)
     plt.show()
     if success:
@@ -170,7 +170,7 @@ def attack_graph(image_id, steps=500, p=2, lr=1e-3):
         plot.compare(model_name, image_id, p,
                      image, image_pred, image_conf,
                      adv_image, adv_image_pred, adv_image_conf)
-        image_name = model_name + "_adv_{}.png".format(image_id)
+        image_name = model_name + f"_{image_id}_{p}.png"
         plt.savefig("attack_results/" + image_name, transparent=True)
         plt.show()
     else:
@@ -190,7 +190,7 @@ def attack_break_graph(image_id, max_steps=500, p=2, lr=1e-3):
     plot.compare(model_name, image_id, p,
                  image, image_pred, image_conf,
                  adv_image, adv_image_pred, adv_image_conf)
-    image_name = model_name + "_adv_{}.png".format(image_id, p)
+    image_name = model_name + f"_{image_id}_p{p}.png"
     plt.savefig("attack_results/" + image_name, transparent=True)
     plt.show()
 
@@ -315,7 +315,8 @@ def create_discriminator_test_dataset_1000(n):
     all_norms, valid_preds = torch.load(path + 'test_norms' + str(n) + '.pt')
     all_confs, _ = torch.load(path + 'test_confs' + str(n) + '.pt')
     images, labels = data_loader.test(dataset_name)
-    for i in range(n, n + 1000):
+    pos = len(valid_preds)
+    for i in range(n + pos, n + 1000):
         if i % 10 == 0:
             torch.save((all_norms, valid_preds), path + 'test_norms' + str(n) + '.pt')
             torch.save((all_confs, valid_preds), path + 'test_confs' + str(n) + '.pt')
@@ -375,7 +376,7 @@ def create_discriminator_train_dataset():
         if 2 * pos < len(valid_preds):
             print(i, j)
         else:
-            if len(valid_preds) % 100 == 0:
+            if len(valid_preds) % 10 == 0:
                 torch.save((all_norms, valid_preds), path + 'train_norms.pt')
                 torch.save((all_confs, valid_preds), path + 'train_confs.pt')
                 print()

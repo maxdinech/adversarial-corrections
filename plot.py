@@ -32,20 +32,17 @@ def compare(model_name, img_id, p,
     # Image
     ax1 = fig.add_subplot(1, 3, 1)
     ax1.imshow(image.data.view(28, 28).cpu().numpy(), cmap='gray')
-    plt.title("\\texttt{{{}(img)}} = {} \\small{{({:0.0f}\\%)}}"
-              .format(model_name_tex, image_pred, image_conf))
+    plt.title(f"\\texttt{{{model_name_tex}(img)}} = {image_pred} \\small{{({image_conf:0.0f}\\%)}}")
     plt.axis('off')
     # Perturbation
     ax2 = fig.add_subplot(1, 3, 2)
     ax2.imshow(r.data.view(28, 28).cpu().numpy(), cmap='RdBu')
-    plt.title("Perturbation : $\\Vert r \\Vert_{{{}}} = {:0.4f}$"
-              .format(p, round(norm, 3)))
+    plt.title(f"Perturbation : $\\Vert r \\Vert_{{{p}}} = {norm:0.4f}$")
     plt.axis('off')
     # Adversarial image
     ax3 = fig.add_subplot(1, 3, 3)
     ax3.imshow(adv_image.data.view(28, 28).cpu().numpy(), cmap='gray')
-    plt.title("\\texttt{{{}(img+r)}} = {} \\small{{({:0.0f}\\%)}}"
-              .format(model_name_tex, adv_image_pred, adv_image_conf))
+    plt.title(f"\\texttt{{{model_name_tex}(img+r)}} = {adv_image_pred} \\small{{({adv_image_conf:0.0f}\\%)}}")
     plt.axis('off')
     # Save and plot
     fig.tight_layout(pad=1)

@@ -11,14 +11,23 @@ class Discriminator(nn.Module):
     def __init__(self):
         super(Discriminator, self).__init__()
         # Training hyperparameters
-        self.lr = 5e-4
-        self.epochs = 100
-        self.batch_size = 64
+        self.lr = 2e-4
+        self.epochs = 40
+        self.batch_size = 32
+        self.features = nn.Sequential(
+            nn.Conv2d(1, 5, kernel_size=(1, 5)),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=(1, 2)),
+            nn.Conv2d(5, 10, kernel_size=(1, 3)),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=(1, 2))
+        )
         self.classifier = nn.Sequential(
-            nn.Linear(50, 120),
+            nn.Dropout(),
+            nn.Linear(100, 20),
             nn.ReLU(inplace=True),
             nn.Dropout(),
-            nn.Linear(120, 1),
+            nn.Linear(20, 2),
             nn.Softmax()
         )
         # Optimizer and loss function
@@ -26,6 +35,9 @@ class Discriminator(nn.Module):
         self.loss_fn = nn.CrossEntropyLoss()
 
     def forward(self, x):
+        x = x.view(len(x), 1, 1, 50)
+        x = self.features(x)
+        x = x.view(x.size(0), -1)  # Flatten
         x = self.classifier(x)
         return x
 

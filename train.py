@@ -87,7 +87,6 @@ def big_loss(images, labels):
     for (x, y) in loader:
         y, y_pred = to_Var(y), model.eval()(to_Var(x))
         count += len(x) * loss_fn(y_pred, y).data[0]
-        # .double() to avoid being limited at 256 (ByteTensor) !
     return count / len(images)
 
 
@@ -95,18 +94,18 @@ def big_loss(images, labels):
 # ----------------
 
 # Prints the hyperparameters before the training.
-print("Train on {} samples, val on {} samples.".format(nb_train, nb_val))
-print("Epochs: {}, batch size: {}".format(epochs, batch_size))
+print(f"Train on {nb_train} samples, val on {nb_val} samples.")
+print(f"Epochs: {epochs}, batch size: {batch_size}")
 optimizer_name = type(optimizer).__name__
-print("Optimizer: {}, learning rate: {}".format(optimizer_name, lr))
+print(f"Optimizer: {optimizer_name}, learning rate: {lr}")
 nb_parameters = sum(param.numel() for param in model.parameters())
-print("Parameters: {}".format(nb_parameters))
-print("Save model : {}\n".format(save_model))
+print(f"Parameters: {nb_parameters}")
+print(f"Save model : {save_model}\n")
 
 
 # Custom progress bar.
 def bar(data, e):
-    epoch = "Epoch {}/{}".format(e+1, epochs)
+    epoch = f"Epoch {e+1}/{epochs}"
     left = "{desc}: {percentage:3.0f}%"
     right = "{elapsed} - ETA:{remaining} - {rate_fmt}"
     bar_format = left + " |{bar}| " + right
@@ -145,10 +144,10 @@ try:
         val_losses.append(val_loss)
 
         # Prints the losses and accs at the end of each epoch.
-        print("  └-> train_loss: {:6.4f} - train_acc: {:5.2f}%  ─  "
-              .format(train_loss, train_acc), end='')
-        print("val_loss: {:6.4f} - val_acc: {:5.2f}%"
-              .format(val_loss, val_acc))
+        print(f"  └─> train_loss: {train_loss:6.4f}",
+              f"- train_acc: {train_acc:5.2f}%",
+              f"  -   val_loss: {val_loss:6.4f}",
+              f"- val_acc: {val_acc:5.2f}%")
 
 except KeyboardInterrupt:
     pass
@@ -156,12 +155,15 @@ except KeyboardInterrupt:
 # Saves the network if stated.
 if save_model:
     path = 'models/' + dataset_name + '/'
-    if not os.path.exists(path):
-        os.mkdir(path)
-    file = open(path + 'results.txt', 'a')
-    file.write("{}: train_acc: {:5.2f}%  -  val_acc: {:5.2f}%\n"
-               .format(model_name, train_acc, val_acc))
     torch.save(model, path + model_name + '.pt')
     # Saves the accs history graph
     plot.train_history(train_accs, val_accs)
     plt.savefig(path + model_name + ".png", transparent=True)
+
+
+def performance(x, y):
+    y, y_pred = to_Var(y), model.eval()(to_Var(x))
+    faux_pos = ((y_pred.max(1)[1] != y) * (y_pred.max(1)[1] == 0)).double().data.sum()
+    faux_neg = ((y_pred.max(1)[1] != y) * (y_pred.max(1)[1] == 1)).double().data.sum()
+    total = (y_pred.max(1)[1] != y).double().data.sum()
+    return (faux_pos, faux_neg, total)

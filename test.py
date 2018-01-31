@@ -51,5 +51,4 @@ test_acc = accuracy(test_images, test_labels)
 
 
 # Prints the losses and accuracies at the end of each epoch.
-print("train_acc: {:0.2f}%  ─  test_acc: {:0.2f}%"
-      .format(train_acc, test_acc))
+print(f"train_acc: {train_acc:0.2f}%  ─  test_acc: {test_acc:0.2f}%")
