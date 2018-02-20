@@ -5,6 +5,7 @@ Plotting functions used in attack.py
 
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
+from tqdm import tqdm
 
 
 rcParams['text.usetex'] = True
@@ -19,7 +20,7 @@ def plot_image(image):
 
 
 # Plots and saves the comparison graph of an adversarial image
-def compare(model_name, img_id, p,
+def attack_result(model_name, img_id, p,
             image, image_pred, image_conf,
             adv_image, adv_image_pred, adv_image_conf):
     model_name_tex = model_name.replace('_', '\\_')
@@ -47,6 +48,7 @@ def compare(model_name, img_id, p,
     # Save and plot
     fig.tight_layout(pad=1)
     plt.subplots_adjust(left=0.05, right=0.95, top=0.80, bottom=0.05)
+    plt.savefig("../docs/img/latest/attack_result.png", transparent=True)
 
 
 # Plots the history of a model training
@@ -65,4 +67,16 @@ def attack_history(norms, confs):
     t = list(range(len(norms)))
     plt.plot(t, norms, 'r')
     plt.plot(t, confs, 'b')
-    plt.legend(["$\\Vert r \\Vert$", "$Conf_c$"])
+    plt.legend(["$\\Vert r \\Vert$", "$\\mathrm{Conf}_c$"])
+    plt.savefig("../docs/img/latest/attack_history.png", transparent=True)
+
+
+# Plots the space exploration
+def space_exploration(a, b, f):
+    T = [i/100 for i in range(-25, 126)]
+    X = [(1-t)*a + t*b for t in T]
+    Y = []
+    for x in tqdm(X):
+        Y.append(f(x))
+    plt.plot(T, Y)
+    plt.savefig("../docs/img/latest/space_exploration.png", transparent=True)

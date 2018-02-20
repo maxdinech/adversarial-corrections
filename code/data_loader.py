@@ -17,26 +17,26 @@ import os.path
 # Creates `train.pt`, `val.pt` and `test.pt` from the specified dataset.
 def create(dataset):
     if dataset == 'MNIST':
-        datasets.MNIST(root='data/',
+        datasets.MNIST(root='../data/',
                        train=True,
                        transform=transforms.ToTensor(),
                        download=True)
     elif dataset == 'FashionMNIST':
-        datasets.FashionMNIST(root='data/',
+        datasets.FashionMNIST(root='../data/',
                               train=True,
                               transform=transforms.ToTensor(),
                               download=True)
     else:
         raise ValueError("Unknown dataset")
-    os.mkdir('data/' + dataset)
-    images, labels = torch.load('data/processed/training.pt')
+    os.mkdir('../data/' + dataset)
+    images, labels = torch.load('../data/processed/training.pt')
     images_train, labels_train = images[:50000].clone(), labels[:50000].clone()
     images_val, labels_val = images[50000:].clone(), labels[50000:].clone()
-    torch.save((images_train, labels_train), 'data/' + dataset + '/train.pt')
-    torch.save((images_val, labels_val), 'data/' + dataset + '/val.pt')
-    shutil.move('data/processed/test.pt', 'data/' + dataset + '/test.pt')
-    shutil.rmtree('data/raw')
-    shutil.rmtree('data/processed')
+    torch.save((images_train, labels_train), '../data/' + dataset + '/train.pt')
+    torch.save((images_val, labels_val), '../data/' + dataset + '/val.pt')
+    shutil.move('../data/processed/test.pt', '../data/' + dataset + '/test.pt')
+    shutil.rmtree('../data/raw')
+    shutil.rmtree('../data/processed')
 
 
 # Loads a subset from a dataset.
@@ -45,12 +45,12 @@ def load(dataset, subset, nb_elements):
                    'MNISTconfs', 'FashionMNISTconfs']:
         if subset == 'val':
             subset = 'test'
-        folder = 'data/' + dataset[:-5] + '/'
+        folder = '../data/' + dataset[:-5] + '/'
         file = subset + '_' + dataset[-5:] + '.pt'
         values, labels = torch.load(folder + file)
         return values, labels.long()
     elif dataset in ['MNIST', 'FashionMNIST']:
-        path = 'data/' + dataset + '/' + subset + '.pt'
+        path = '../data/' + dataset + '/' + subset + '.pt'
         if not os.path.exists(path):
             create(dataset)
         images, labels = torch.load(path)

@@ -26,7 +26,7 @@ def load_architecture(model_name):
 def load_model(dataset, model_name):
     if dataset is not 'ImageNet':
         try:
-            model = torch.load('models/' + dataset + '/' + model_name + '.pt',
+            model = torch.load('../models/' + dataset + '/' + model_name + '.pt',
                                map_location=lambda storage, loc: storage)
             if torch.cuda.is_available():
                 model = model.cuda()

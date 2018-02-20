@@ -23,6 +23,9 @@ subset = sys.argv[3]
 # Loads the model
 model = load_model(dataset_name, model_name)
 
+if len(sys.argv) > 4:
+    discriminator_set = dataset_name + sys.argv[4]
+    discriminator = load_model(discriminator_set, "Discriminator")
 
 # Loads the specified subset from the specified database
 images, labels = getattr(data_loader, subset)(dataset_name)
@@ -157,45 +160,46 @@ def attack_break(image, max_steps=500, p=2, lr=1e-3):
 def attack_graph(image_id, steps=500, p=2, lr=1e-3):
     image = load_image(image_id)
     success, adv_image, norms, confs = attack(image, steps, p, lr)
-    plot.attack_history(norms, confs)
-    plt.savefig(f"../car-crash/docs/images/attack_{image_id}.png",
-                transparent=True)
+    # plot.attack_history(norms, confs)
+    # plt.show()
+    # plt.savefig("../docs/images/last_attack_history.png", transparent=True)
+    confc = lambda i: confidence(i, prediction(image))
+    plot.space_exploration(image, adv_image, confc)
     plt.show()
-    if success:
-        print("\nAttack suceeded")
-        image_pred = prediction(image)
-        image_conf = 100 * confidence(image, image_pred)
-        adv_image_pred = prediction(adv_image)
-        adv_image_conf = 100 * confidence(adv_image, adv_image_pred)
-        plot.compare(model_name, image_id, p,
-                     image, image_pred, image_conf,
-                     adv_image, adv_image_pred, adv_image_conf)
-        image_name = model_name + f"_{image_id}_{p}.png"
-        plt.savefig("attack_results/" + image_name, transparent=True)
-        plt.show()
-    else:
-        print("\nAttack failed")
+    # if success:
+    #     print("\nAttack suceeded")
+    #     image_pred = prediction(image)
+    #     image_conf = 100 * confidence(image, image_pred)
+    #     adv_image_pred = prediction(adv_image)
+    #     adv_image_conf = 100 * confidence(adv_image, adv_image_pred)
+    #     plot.attack_result(model_name, image_id, p,
+    #                        image, image_pred, image_conf,
+    #                        adv_image, adv_image_pred, adv_image_conf)
+    #     plt.savefig("../docs/images/last_attack_result.png", transparent=True)
+    #     plt.show()
+    # else:
+    #     print("\nAttack failed")
 
 
 def attack_break_graph(image_id, max_steps=500, p=2, lr=1e-3):
     image = load_image(image_id)
     success, adv_image, norms, confs = attack_break(image, max_steps, p, lr)
     plot.attack_history(norms, confs)
-    plt.savefig("../car-crash/docs/images/attack.png", transparent=True)
+    plt.savefig("../docs/images/last_attack_history.png", transparent=True)
     plt.show()
     image_pred = prediction(image)
     image_conf = confidence(image, image_pred)
     adv_image_pred = prediction(adv_image)
     adv_image_conf = confidence(adv_image, adv_image_pred)
-    plot.compare(model_name, image_id, p,
-                 image, image_pred, image_conf,
-                 adv_image, adv_image_pred, adv_image_conf)
+    plot.attack_result(model_name, image_id, p,
+                       image, image_pred, image_conf,
+                       adv_image, adv_image_pred, adv_image_conf)
     image_name = model_name + f"_{image_id}_p{p}.png"
-    plt.savefig("attack_results/" + image_name, transparent=True)
+    plt.savefig("../docs/images/last_attack_result.png", transparent=True)
     plt.show()
 
 
-# RESISTANCE FONCTIONS
+# RESISTANCE FUNCTIONS
 # --------------------
 
 # A resistance value greater than 1000 is highly unlikely.
@@ -248,7 +252,6 @@ def resistances_lists(list, steps):
 # ADVERSARIAL CORRECTIONS
 # -----------------------
 
-
 def labels_list(list):
     return [load_label(i) for i in list]
 
@@ -269,132 +272,3 @@ def error_count(labels, pred_labels, corr_labels, resistances, criterion):
         else:
             errs += 1 * (a != l)
     return errs
-
-
-# DISCRIMINATOR DATABASE
-# ----------------------
-
-
-def create_discriminator_test_dataset():
-    path = 'data/' + dataset_name + '/'
-    empty = torch.Tensor([])
-    if not os.path.exists(path + 'test_confs.pt'):
-        torch.save((empty, empty.byte()), path + 'test_confs.pt')
-    if not os.path.exists(path + 'test_norms.pt'):
-        torch.save((empty, empty.byte()), path + 'test_norms.pt')
-    all_norms, valid_preds = torch.load(path + 'test_norms.pt')
-    all_confs, _ = torch.load(path + 'test_confs.pt')
-    images, labels = data_loader.test(dataset_name)
-    pos = len(valid_preds)
-    for i in range(pos, len(images)):
-        if i % 10 == 0:
-            torch.save((all_norms, valid_preds), path + 'test_norms.pt')
-            torch.save((all_confs, valid_preds), path + 'test_confs.pt')
-            print(i, '-', len(valid_preds), len(all_norms), len(all_confs))
-        image = to_Var(images[i].view(1, 1, 28, 28))
-        label = labels[i]
-        pred_label = prediction(image)
-        attack_result = attack(image, 500)
-        norms = torch.Tensor(attack_result[2][::10]).view(1, 50)
-        confs = torch.Tensor(attack_result[3][::10]).view(1, 50)
-        valid_pred = torch.Tensor([1 * (pred_label == label)]).byte()
-        all_norms = torch.cat((all_norms, norms), 0)
-        all_confs = torch.cat((all_confs, confs), 0)
-        valid_preds = torch.cat((valid_preds, valid_pred), 0)
-    torch.save((all_norms, valid_preds), path + 'test_norms.pt')
-    torch.save((all_confs, valid_preds), path + 'test_confs.pt')
-
-
-def create_discriminator_test_dataset_1000(n):
-    path = 'data/' + dataset_name + '/'
-    empty = torch.Tensor([])
-    if not os.path.exists(path + 'test_confs' + str(n) + '.pt'):
-        torch.save((empty, empty.byte()), path + 'test_confs' + str(n) + '.pt')
-    if not os.path.exists(path + 'test_norms' + str(n) + '.pt'):
-        torch.save((empty, empty.byte()), path + 'test_norms' + str(n) + '.pt')
-    all_norms, valid_preds = torch.load(path + 'test_norms' + str(n) + '.pt')
-    all_confs, _ = torch.load(path + 'test_confs' + str(n) + '.pt')
-    images, labels = data_loader.test(dataset_name)
-    pos = len(valid_preds)
-    for i in range(n + pos, n + 1000):
-        if i % 10 == 0:
-            torch.save((all_norms, valid_preds), path + 'test_norms' + str(n) + '.pt')
-            torch.save((all_confs, valid_preds), path + 'test_confs' + str(n) + '.pt')
-            print(i, '-', len(valid_preds), len(all_norms), len(all_confs))
-        image = to_Var(images[i].view(1, 1, 28, 28))
-        label = labels[i]
-        pred_label = prediction(image)
-        attack_result = attack(image, 500)
-        norms = torch.Tensor(attack_result[2][::10]).view(1, 50)
-        confs = torch.Tensor(attack_result[3][::10]).view(1, 50)
-        valid_pred = torch.Tensor([1 * (pred_label == label)]).byte()
-        all_norms = torch.cat((all_norms, norms), 0)
-        all_confs = torch.cat((all_confs, confs), 0)
-        valid_preds = torch.cat((valid_preds, valid_pred), 0)
-    torch.save((all_norms, valid_preds), path + 'test_norms' + str(n) + '.pt')
-    torch.save((all_confs, valid_preds), path + 'test_confs' + str(n) + '.pt')
-
-
-def create_discriminator_train_dataset():
-    path = 'data/' + dataset_name + '/'
-    empty = torch.Tensor([])
-    if not os.path.exists(path + 'train_confs.pt'):
-        torch.save((empty, empty.byte()), path + 'train_confs.pt')
-    if not os.path.exists(path + 'train_norms.pt'):
-        torch.save((empty, empty.byte()), path + 'train_norms.pt')
-    all_norms, valid_preds = torch.load(path + 'train_norms.pt')
-    all_confs, _ = torch.load(path + 'train_confs.pt')
-
-    train_images, train_labels = data_loader.train(dataset_name)
-    val_images, val_labels = data_loader.val(dataset_name)
-    images = torch.cat((train_images, val_images), 0)
-    labels = torch.cat((train_labels, val_labels), 0)
-
-    def errors_bis(n=len(images)):
-        i = 0
-        l = len(images)
-        while i < l and n > 0:
-            image = to_Var(images[i].view(1, 1, 28, 28))
-            label = labels[i]
-            if prediction(image) != label:
-                yield i
-                n -= 1
-            i += 1
-
-    def not_errors_bis(n=len(images)):
-        i = 0
-        l = len(images)
-        while i < l and n > 0:
-            image = to_Var(images[i].view(1, 1, 28, 28))
-            label = labels[i]
-            if prediction(image) == label:
-                yield i
-                n -= 1
-            i += 1
-
-    for pos, (i, j) in enumerate(zip(errors_bis(), not_errors_bis())):
-        if 2 * pos < len(valid_preds):
-            print(i, j)
-        else:
-            if len(valid_preds) % 10 == 0:
-                torch.save((all_norms, valid_preds), path + 'train_norms.pt')
-                torch.save((all_confs, valid_preds), path + 'train_confs.pt')
-                print()
-                print(len(valid_preds))
-                print()
-            print(i, j)
-            image_e = to_Var(images[i].view(1, 1, 28, 28))
-            image_v = to_Var(images[j].view(1, 1, 28, 28))
-            label_e, label_v = labels[i], labels[j]
-            attack_result_e = attack(image_e, 500)
-            attack_result_v = attack(image_v, 500)
-            norms_e = torch.Tensor(attack_result_e[2][::10]).view(1, 50)
-            confs_e = torch.Tensor(attack_result_e[3][::10]).view(1, 50)
-            norms_v = torch.Tensor(attack_result_v[2][::10]).view(1, 50)
-            confs_v = torch.Tensor(attack_result_v[3][::10]).view(1, 50)
-            valid_pred = torch.Tensor([0, 1]).byte()
-            all_norms = torch.cat((all_norms, norms_e, norms_v), 0)
-            all_confs = torch.cat((all_confs, confs_e, confs_v), 0)
-            valid_preds = torch.cat((valid_preds, valid_pred), 0)
-    torch.save((all_norms, valid_preds), path + 'train_norms.pt')
-    torch.save((all_confs, valid_preds), path + 'train_confs.pt')

@@ -163,7 +163,9 @@ if save_model:
 
 def performance(x, y):
     y, y_pred = to_Var(y), model.eval()(to_Var(x))
-    faux_pos = ((y_pred.max(1)[1] != y) * (y_pred.max(1)[1] == 0)).double().data.sum()
-    faux_neg = ((y_pred.max(1)[1] != y) * (y_pred.max(1)[1] == 1)).double().data.sum()
+    faux_pos = ((y_pred.max(1)[1] != y) * (y_pred.max(1)[1] == 0))
+    faux_pos = faux_pos.double().data.sum()
+    faux_neg = ((y_pred.max(1)[1] != y) * (y_pred.max(1)[1] == 1))
+    faux_neg = faux_neg.double().data.sum()
     total = (y_pred.max(1)[1] != y).double().data.sum()
     return (faux_pos, faux_neg, total)
