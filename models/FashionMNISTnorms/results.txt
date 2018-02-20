@@ -1,0 +1,7 @@
+Discriminator: train_acc: 79.19%  -  val_acc: 74.10%
+Discriminator: train_acc: 79.38%  -  val_acc: 74.10%
+Discriminator: train_acc: 79.84%  -  val_acc: 78.06%
+Discriminator: train_acc: 79.07%  -  val_acc: 74.88%
+Discriminator: train_acc: 79.42%  -  val_acc: 74.67%
+Discriminator: train_acc: 79.16%  -  val_acc: 76.10%
+{model_name}: train_acc: {train_acc:5.2f}%  -  val_acc: {val_acc:5.2f}%

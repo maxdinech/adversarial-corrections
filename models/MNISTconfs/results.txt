@@ -1,0 +1,1 @@
+Discriminator: train_acc: 93.49%  -  val_acc: 96.36%
