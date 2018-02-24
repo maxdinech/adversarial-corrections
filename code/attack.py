@@ -1,31 +1,45 @@
 """
-Adversarial examples creation against a specified model
+Adversarial attacks
 
-Syntax: python -i attack.py MODEL DATASET SUBSET
+---
+
+usage: python3 -i attack.py model dataset subset
+
+positional arguments:
+  model       Trained model to evaluate
+  dataset     Dataset used for training
+  subset      Subset to calculate the acc. on
 """
 
 
 import os
 import sys
+import argparse
+
 import torch
 from torch import nn
+import matplotlib.pyplot as plt
+
 from basics import to_Var, load_model
 import data_loader
-import matplotlib.pyplot as plt
 import plot
 
 
-# Passed parameters
-model_name = sys.argv[1]
-dataset_name = sys.argv[2]
-subset = sys.argv[3]
+# Parameters parsing
+parser = argparse.ArgumentParser()
+parser.add_argument("model", type=str, help="Trained model to evaluate")
+parser.add_argument("dataset", type=str, help="Dataset used for training")
+parser.add_argument("subset", type=str, help="Subset to calculate the acc. on")
+args = parser.parse_args()
+
+model_name = args.model
+dataset = args.dataset
+subset = args.subset
+
 
 # Loads the model
 model = load_model(dataset_name, model_name)
 
-if len(sys.argv) > 4:
-    discriminator_set = dataset_name + sys.argv[4]
-    discriminator = load_model(discriminator_set, "Discriminator")
 
 # Loads the specified subset from the specified database
 images, labels = getattr(data_loader, subset)(dataset_name)
@@ -103,7 +117,7 @@ class Attacker(nn.Module):
             return conf - norm
 
 
-def attack(image, steps=500, p=2, lr=1e-3):
+def GDA(image, steps=500, p=2, lr=1e-3):
     norms, confs = [], []
     digit = prediction(image)
     attacker = Attacker(p, lr)
@@ -129,7 +143,7 @@ def attack(image, steps=500, p=2, lr=1e-3):
     return(success, adv_image, norms, confs)
 
 
-def attack_break(image, max_steps=500, p=2, lr=1e-3):
+def GDA_break(image, max_steps=500, p=2, lr=1e-3):
     norms, confs = [], []
     digit = prediction(image)
     attacker = Attacker(p, lr)
@@ -157,35 +171,38 @@ def attack_break(image, max_steps=500, p=2, lr=1e-3):
     return(steps, adv_image, norms, confs)
 
 
-def attack_graph(image_id, steps=500, p=2, lr=1e-3):
+def GDA_graph(image_id, steps=500, p=2, lr=1e-3):
     image = load_image(image_id)
-    success, adv_image, norms, confs = attack(image, steps, p, lr)
-    # plot.attack_history(norms, confs)
-    # plt.show()
-    # plt.savefig("../docs/images/last_attack_history.png", transparent=True)
+    success, adv_image, norms, confs = GDA(image, steps, p, lr)
+    plot.attack_history(norms, confs)
+    plt.show()
+    path = os.path.join("..", "docs", "images", "last_attack_history.png")
+    plt.savefig(path, transparent=True)
     confc = lambda i: confidence(i, prediction(image))
     plot.space_exploration(image, adv_image, confc)
     plt.show()
-    # if success:
-    #     print("\nAttack suceeded")
-    #     image_pred = prediction(image)
-    #     image_conf = 100 * confidence(image, image_pred)
-    #     adv_image_pred = prediction(adv_image)
-    #     adv_image_conf = 100 * confidence(adv_image, adv_image_pred)
-    #     plot.attack_result(model_name, image_id, p,
-    #                        image, image_pred, image_conf,
-    #                        adv_image, adv_image_pred, adv_image_conf)
-    #     plt.savefig("../docs/images/last_attack_result.png", transparent=True)
-    #     plt.show()
-    # else:
-    #     print("\nAttack failed")
+    if success:
+        print("\nAttack suceeded")
+        image_pred = prediction(image)
+        image_conf = 100 * confidence(image, image_pred)
+        adv_image_pred = prediction(adv_image)
+        adv_image_conf = 100 * confidence(adv_image, adv_image_pred)
+        plot.attack_result(model_name, image_id, p,
+                           image, image_pred, image_conf,
+                           adv_image, adv_image_pred, adv_image_conf)
+        path = os.path.join("..", "docs", "images", "last_attack_result.png")
+        plt.savefig(path, transparent=True)
+        plt.show()
+    else:
+        print("\nAttack failed")
 
 
-def attack_break_graph(image_id, max_steps=500, p=2, lr=1e-3):
+def GDA_attack_break_graph(image_id, max_steps=500, p=2, lr=1e-3):
     image = load_image(image_id)
-    success, adv_image, norms, confs = attack_break(image, max_steps, p, lr)
+    success, adv_image, norms, confs = GDA_break(image, max_steps, p, lr)
     plot.attack_history(norms, confs)
-    plt.savefig("../docs/images/last_attack_history.png", transparent=True)
+    path = os.path.join("..", "docs", "images", "last_attack_history.png")
+    plt.savefig(path, transparent=True)
     plt.show()
     image_pred = prediction(image)
     image_conf = confidence(image, image_pred)
@@ -194,26 +211,26 @@ def attack_break_graph(image_id, max_steps=500, p=2, lr=1e-3):
     plot.attack_result(model_name, image_id, p,
                        image, image_pred, image_conf,
                        adv_image, adv_image_pred, adv_image_conf)
-    image_name = model_name + f"_{image_id}_p{p}.png"
-    plt.savefig("../docs/images/last_attack_result.png", transparent=True)
+    path = os.path.join("..", "docs", "images", "last_attack_result.png")
+    plt.savefig(path, transparent=True)
     plt.show()
 
 
 # RESISTANCE FUNCTIONS
 # --------------------
 
-# A resistance value greater than 1000 is highly unlikely.
-# 10000 will thus represent infinity when the attack fails.
+# A resistance value greater than 1000 is not possible.
+# Which is why 10000 will represent infinity when the attack fails.
 
 def resistance_N(image_id, steps):
-    success, _, norms, _ = attack(load_image(image_id), steps)
+    success, _, norms, _ = GDA(load_image(image_id), steps)
     if success:
         return norms[-1]
     return 10000
 
 
 def resistance_max(image_id, steps):
-    success, _, norms, _ = attack(load_image(image_id), steps)
+    success, _, norms, _ = GDA(load_image(image_id), steps)
     if success:
         return max(norms)
     return 10000
@@ -228,7 +245,7 @@ def resistance_min(image_id, max_steps):
 
 # Computes the N-resistance, max_resistance and min_resistance in a single pass
 def resistances_3(image_id, steps):
-    attack_result = attack(load_image(image_id), steps)
+    attack_result = GDA(load_image(image_id), steps)
     success, _, norms, confs = attack_result
     if success:
         res_N = norms[-1]

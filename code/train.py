@@ -1,73 +1,102 @@
 """
-Networks training.
+Trains a specified architucture to classify a specified dataset.
+The networks are defined in architectures.py
 
-Syntax : python train.py MODEL DATASET SAVE
+---
 
-MODEL is either AlexNet, AlexNet_bn, VGG or VGG_bn (see architectures.py)
+usage: python3 train.py [-num NUM] [-val VAL] [-lr LR] [-e E] [-bs BS] [-t T]
+                        [-S] model dataset
 
-DATASET is either :
-    - MNIST
-    - FashionMNIST
-    - MNISTnorms
-    - MNISTconfs
-    - FashionMNISTnorms
-    - FashionMNISTconfs
+positional arguments:
+  model       Network architecture (defined in architectures.py)
+  dataset     Dataset used for training
 
-If SAVE is True, the trained model is saved in models/DATASET/.
-
+optional arguments:
+  -num NUM    Number of images used (default: all)
+  -val VAL    Images proportion in val (default: 1/6)
+  -lr LR      Learning rate (default: specified in model class)
+  -e E        Num. of epochs (default: specified in model class)
+  -bs BS      batch size (default: specified in model class)
+  -t T        Top-k error metric (default: 1)
+  -S, --save  Saves the trained model (default: False)
 """
 
 
 import os
 import sys
+import argparse
+
 import torch
 from torch.utils.data import DataLoader, TensorDataset
-from basics import to_Var, load_architecture
 import matplotlib.pyplot as plt
-import plot
 from tqdm import tqdm
+
+from basics import to_Var, load_architecture
 import data_loader
+import plot
 
 
-# Passed parameters
-model_name = sys.argv[1]
-dataset_name = sys.argv[2]
-save_model = ((sys.argv + ["False"])[3] == "True")  # Default: save_model=False
+# Parameters parsing
+parser = argparse.ArgumentParser()
+parser.add_argument("model", type=str,
+                    help="Network architecture (defined in architectures.py)")
+parser.add_argument("dataset", type=str,
+                    help="Dataset used for training")
+parser.add_argument("-num", type=float,
+                    help="Number of images used (default: all)")
+parser.add_argument("-val", type=float,
+                    help="Images proportion in val (default: 1/6)")
+parser.add_argument("-lr", type=float,
+                    help="Learning rate (default: specified in model class)")
+parser.add_argument("-e", type=int,
+                    help="Num. of epochs (default: specified in model class)")
+parser.add_argument("-bs", type=int,
+                    help="batch size (default: specified in model class)")
+parser.add_argument("-t", type=int,
+                    help="Top-k error metric (default: 1)")
+parser.add_argument("-S", "--save", action="store_true",
+                    help="Saves the trained model (default: False)")
+args = parser.parse_args()
 
-
-# Sizes of the train and validation databases
-nb_train = 50000
-nb_val = 10000
-
+model_name = args.model
+dset_name = args.dataset
+num_img = args.num
+val_split = args.val if args.val else 1/6
+save_model = args.save
 
 # Model instanciation
 model = load_architecture(model_name)
 
 
-# Loads model hyperparameters
-batch_size = model.batch_size
-lr = model.lr
-epochs = model.epochs
+# Loads model hyperparameters (if not specified in args)
+batch_size = args.bs if args.bs else model.batch_size
+lr = args.lr if args.lr else model.lr
+epochs = args.e if args.e else model.epochs
+
 
 # Loads model functions
 loss_fn = model.loss_fn
 optimizer = model.optimizer
 
 
-# Loads the train and test databases.
-train_images, train_labels = data_loader.train(dataset_name, nb_train)
-val_images, val_labels = data_loader.val(dataset_name, nb_val)
+# Loads the train databases, and splits in into train and val.
+train_images, train_labels = data_loader.train(dset_name, num_img, val_split)
+val_images, val_labels = data_loader.val(dset_name, num_img, val_split)
+num_train = len(train_images)
+num_val = len(val_images)
 
+
+# DataLoader of the train images
 train_loader = DataLoader(TensorDataset(train_images, train_labels),
                           batch_size=batch_size,
                           shuffle=True)
 
-nb_batches = len(train_loader)
+num_batches = len(train_loader)
 
 
-# Computes the acccuracy of the model.
+# Computes the Top-k acccuracy of the model.
 # (computing the accuracy mini-batch after mini-batch avoids memory overload)
-def accuracy(images, labels):
+def accuracy(images, labels, k=1):
     data = TensorDataset(images, labels)
     loader = DataLoader(data, batch_size=100, shuffle=False)
     count = 0
@@ -76,6 +105,19 @@ def accuracy(images, labels):
         count += (y_pred.max(1)[1] == y).double().data.sum()
         # .double(): ByteTensor sums are limited at 256.
     return 100 * count / len(images)
+
+
+# Computes the precision@k for the specified values of k
+def accuracy(images, labels, topk=(1,)):
+    batch_size = labels.size(0)
+
+    _, pred = images.topk(k, 1, True, True)
+    pred = pred.t()
+    correct = pred.eq(labels.view(1, -1).expand_as(pred))
+
+    correct_k = correct[:k].view(-1).float().sum(0, keepdim=True)
+    return correct_k.mul_(100.0 / batch_size)
+
 
 
 # Computes the loss of the model.
@@ -94,12 +136,12 @@ def big_loss(images, labels):
 # ----------------
 
 # Prints the hyperparameters before the training.
-print(f"Train on {nb_train} samples, val on {nb_val} samples.")
+print(f"Train on {num_train} samples, val on {num_val} samples.")
 print(f"Epochs: {epochs}, batch size: {batch_size}")
 optimizer_name = type(optimizer).__name__
 print(f"Optimizer: {optimizer_name}, learning rate: {lr}")
-nb_parameters = sum(param.numel() for param in model.parameters())
-print(f"Parameters: {nb_parameters}")
+num_parameters = sum(param.numel() for param in model.parameters())
+print(f"Parameters: {num_parameters}")
 print(f"Save model : {save_model}\n")
 
 
@@ -154,14 +196,14 @@ except KeyboardInterrupt:
 
 # Saves the network if stated.
 if save_model:
-    path = 'models/' + dataset_name + '/'
-    torch.save(model, path + model_name + '.pt')
+    path = os.path.join("..", "models", dset_name, model_name + ".pt")
+    torch.save(model, path)
     # Saves the accs history graph
     plot.train_history(train_accs, val_accs)
     plt.savefig(path + model_name + ".png", transparent=True)
 
 
-def performance(x, y):
+def discriminator_performance(x, y):
     y, y_pred = to_Var(y), model.eval()(to_Var(x))
     faux_pos = ((y_pred.max(1)[1] != y) * (y_pred.max(1)[1] == 0))
     faux_pos = faux_pos.double().data.sum()
