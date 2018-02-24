@@ -28,7 +28,7 @@ class Discriminator(nn.Module):
             nn.ReLU(inplace=True),
             nn.Dropout(),
             nn.Linear(20, 2),
-            nn.Softmax()
+            nn.Softmax(dim=1)
         )
         # Optimizer and loss function
         self.optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
@@ -63,7 +63,7 @@ class AlexNet(nn.Module):
             nn.ReLU(inplace=True),
             nn.Dropout(),
             nn.Linear(120, 10),
-            nn.Softmax()
+            nn.Softmax(dim=1)
         )
         # Optimizer and loss function
         self.optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
@@ -98,7 +98,7 @@ class AlexNet_bn(nn.Module):
             nn.ReLU(inplace=True),
             nn.BatchNorm1d(120),
             nn.Linear(120, 10),
-            nn.Softmax()
+            nn.Softmax(dim=1)
         )
         # Optimizer and loss function
         self.optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
@@ -138,7 +138,7 @@ class VGG(nn.Module):
             nn.ReLU(True),
             nn.Dropout(),
             nn.Linear(4096, 10),
-            nn.Softmax()
+            nn.Softmax(dim=1)
         )
         # Optimizer and loss function
         self.optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
@@ -182,7 +182,7 @@ class VGG_bn(nn.Module):
             nn.ReLU(True),
             nn.Dropout(),
             nn.Linear(4096, 10),
-            nn.Softmax()
+            nn.Softmax(dim=1)
         )
         # Optimizer and loss function
         self.optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
