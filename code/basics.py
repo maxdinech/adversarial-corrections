@@ -1,11 +1,14 @@
 """
-Basic PyTorch functions
+Basic PyTorch functions used in most of the other programs.
 """
 
+
+import os
 
 import torch
 from torch.autograd import Variable
 import torchvision.models as models
+
 import architectures
 
 
@@ -26,8 +29,8 @@ def load_architecture(model_name):
 def load_model(dataset, model_name):
     if dataset is not 'ImageNet':
         try:
-            model = torch.load('../models/' + dataset + '/' + model_name + '.pt',
-                               map_location=lambda storage, loc: storage)
+            path = os.path.join("..", "models", dataset, model_name + ".pt")
+            model = torch.load(path, map_location=lambda storage, loc: storage)
             if torch.cuda.is_available():
                 model = model.cuda()
             return model

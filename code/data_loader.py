@@ -1,74 +1,83 @@
 """
 Automatically creates and loads the MNIST and FashionMNIST datasets.
-
-The datasets are split between :
-    - train (50000 samples),
-    - val   (10000 samples),
-    - test  (10000 samples).
 """
 
 
+import os
+import shutil
+
 import torch
 from torchvision import datasets, transforms
-import shutil
-import os.path
 
 
-# Creates `train.pt`, `val.pt` and `test.pt` from the specified dataset.
+# Creates `train.pt` and `test.pt` from the specified dataset.
 def create(dataset):
+    root = os.path.join('..', 'data')
     if dataset == 'MNIST':
-        datasets.MNIST(root='../data/',
-                       train=True,
+        datasets.MNIST(root=root, train=True,
                        transform=transforms.ToTensor(),
                        download=True)
     elif dataset == 'FashionMNIST':
-        datasets.FashionMNIST(root='../data/',
-                              train=True,
+        datasets.FashionMNIST(root=root, train=True,
                               transform=transforms.ToTensor(),
                               download=True)
-    else:
-        raise ValueError("Unknown dataset")
-    os.mkdir('../data/' + dataset)
-    images, labels = torch.load('../data/processed/training.pt')
-    images_train, labels_train = images[:50000].clone(), labels[:50000].clone()
-    images_val, labels_val = images[50000:].clone(), labels[50000:].clone()
-    torch.save((images_train, labels_train), '../data/' + dataset + '/train.pt')
-    torch.save((images_val, labels_val), '../data/' + dataset + '/val.pt')
-    shutil.move('../data/processed/test.pt', '../data/' + dataset + '/test.pt')
-    shutil.rmtree('../data/raw')
-    shutil.rmtree('../data/processed')
+    os.mkdir(os.path.join(root, dataset))
+    shutil.move(os.path.join(root, 'processed', 'training.pt'),
+                os.path.join(root, dataset, 'train.pt'))
+    shutil.move(os.path.join(root, 'processed', 'test.pt'),
+                os.path.join(root, dataset, 'test.pt'))
+    shutil.rmtree(os.path.join(root, 'raw'))
+    shutil.rmtree(os.path.join(root, 'processed'))
 
 
 # Loads a subset from a dataset.
-def load(dataset, subset, nb_elements):
+def load(dataset, subset, num_elements=None):
+    root = os.path.join('..', 'data')
     if dataset in ['MNISTnorms', 'FashionMNISTnorms',
                    'MNISTconfs', 'FashionMNISTconfs']:
-        if subset == 'val':
-            subset = 'test'
-        folder = '../data/' + dataset[:-5] + '/'
-        file = subset + '_' + dataset[-5:] + '.pt'
-        values, labels = torch.load(folder + file)
+        file_name = subset + '_' + dataset[-5:] + '.pt'
+        path = os.path.join(root, dataset[:-5], file_name)
+        values, labels = torch.load(path)
         return values, labels.long()
     elif dataset in ['MNIST', 'FashionMNIST']:
-        path = '../data/' + dataset + '/' + subset + '.pt'
+        path = os.path.join(root, dataset, subset + '.pt')
         if not os.path.exists(path):
             create(dataset)
         images, labels = torch.load(path)
-        images = images[:nb_elements].clone()
-        labels = labels[:nb_elements].clone()
+        if num_elements:
+            images = images[:num_elements].clone()
+            labels = labels[:num_elements].clone()
         images = images.float() / 255
         labels = labels.long()
         if torch.cuda.is_available():
             images = images.cuda()
             labels = labels.cuda()
-        images = images.view(len(images), 1, 28, 28)
+        images = images.view(len(images), 1, 28, 28)  # Channels first
         return images, labels
     else:
-        raise ValueError("Unknown dataset")
+        raise ValueError('Unknown dataset')
 
 
-train = lambda dataset, nb_train=50000: load(dataset, 'train', nb_train)
+# Loads ((1 - val_split) * num_images) from `train` starting at position 0
+def train(dataset, num_images, val_split):
+    images, labels = load(dataset, 'train', num_images)
+    num_images = num_images if num_images else len(images)
+    num_train = int((1-val_split) * num_images)
+    train_images = images[:num_train].clone()
+    train_labels = labels[:num_train].clone()
+    return train_images, train_labels
 
-val = lambda dataset, nb_val=10000: load(dataset, 'val', nb_val)
 
-test = lambda dataset, nb_test=10000: load(dataset, 'test', nb_test)
+# Loads (val_split * num_images) from `train` starting at position `num_train`
+def val(dataset, num_images, val_split):
+    images, labels = load(dataset, 'train', num_images)
+    num_images = num_images if num_images else len(images)
+    num_train = int((1-val_split) * num_images)
+    train_images = images[num_train:num_images].clone()
+    train_labels = labels[num_train:num_images].clone()
+    return train_images, train_labels
+
+
+# Loads the test images
+def test(dataset, num_test=None):
+    return load(dataset, 'test', num_test)
