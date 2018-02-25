@@ -32,7 +32,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("model", type=str, help="Trained model to evaluate")
 parser.add_argument("dataset", type=str, help="Dataset used for training")
 parser.add_argument("subset", type=str, help="Subset to compute the error on")
-parser.add_argument("-split", type=float, default=1/6,
+parser.add_argument("-split", type=str, default="1/6",
                     help="Images proportion in val (default: 1/6)")
 parser.add_argument("-k", type=int, default=1,
                     help="Top-k error metric (default: 1)")
@@ -41,7 +41,7 @@ args = parser.parse_args()
 model_name = args.model
 dset_name = args.dataset
 subset = args.subset
-val_split = args.split
+val_split = eval(args.split)  # Allows to pass fractions in parameters
 k = args.k
 
 
@@ -50,7 +50,7 @@ model = load_model(dset_name, model_name)
 
 
 # Loads the specified subset from the dataset.
-images, labels = getattr(data_loader, subset)(dset_name, args.split, num_img)
+images, labels = getattr(data_loader, subset)(dset_name, val_split)
 
 
 # Custom progress bar.
@@ -77,6 +77,7 @@ def accuracy(images, labels, k=1):
 
 
 # Prints the losses and accuracies at the end of each epoch.
+print(f"Computing the Top-{k} error on the {len(images)} {subset} images.")
 acc = accuracy(images, labels, k)
 error = 100 - acc
 print(f"Top-{k} error: {error:0.2f}%")

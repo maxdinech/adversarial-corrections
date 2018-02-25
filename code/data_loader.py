@@ -62,7 +62,7 @@ def load(dataset, subset, num_elements=None):
 def train(dataset, val_split, num_images=None):
     images, labels = load(dataset, 'train', num_images)
     num_images = num_images if num_images else len(images)
-    num_train = int((1-val_split) * num_images)
+    num_train = round((1-val_split) * num_images)
     train_images = images[:num_train].clone()
     train_labels = labels[:num_train].clone()
     return train_images, train_labels
@@ -72,7 +72,7 @@ def train(dataset, val_split, num_images=None):
 def val(dataset, val_split, num_images=None):
     images, labels = load(dataset, 'train', num_images)
     num_images = num_images if num_images else len(images)
-    num_train = int((1-val_split) * num_images)
+    num_train = round((1-val_split) * num_images)
     train_images = images[num_train:num_images].clone()
     train_labels = labels[num_train:num_images].clone()
     return train_images, train_labels

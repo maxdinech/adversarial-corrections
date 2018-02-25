@@ -44,7 +44,7 @@ parser.add_argument("dataset", type=str,
                     help="Dataset used for training")
 parser.add_argument("-num", type=int,
                     help="Number of images used (default: all)")
-parser.add_argument("-split", type=float, default=1/6,
+parser.add_argument("-split", type=str, default="1/6",
                     help="Images proportion in val (default: 1/6)")
 parser.add_argument("-lr", type=float,
                     help="Learning rate (default: value in the model class)")
@@ -61,6 +61,7 @@ args = parser.parse_args()
 model_name = args.model
 dset_name = args.dataset
 num_img = args.num
+val_split = eval(args.split)  # Allows to pass fractions in parameters
 k = args.k
 save_model = args.save
 
@@ -80,7 +81,7 @@ optimizer = model.optimizer
 
 
 # Loads the train databases, and splits in into train and val.
-train_images, train_labels = data_loader.train(dset_name, args.split, num_img)
+train_images, train_labels = data_loader.train(dset_name, val_split, num_img)
 val_images, val_labels = data_loader.val(dset_name, val_split, num_img)
 num_train = len(train_images)
 num_val = len(val_images)
