@@ -1,5 +1,5 @@
 """
-Evaluates the accuracy of a trained model, over a given subset of a dataset.
+Computes the Top-k error of a trained model, over a given subset of a dataset.
 
 ---
 
@@ -8,10 +8,11 @@ usage: python3 accuracy.py [-k K] model dataset subset
 positional arguments:
   model       Trained model to evaluate
   dataset     Dataset used for training
-  subset      Subset to calculate the acc. on
+  subset      Subset to calculate the error on
 
 optional arguments:
-  -k K        Top-k error metric (default: 1)
+  -split SPLIT  Images proportion in val (default: 1/6)
+  -k K          Top-k error metric (default: 1)
 """
 
 
@@ -20,6 +21,7 @@ import argparse
 
 import torch
 from torch.utils.data import DataLoader, TensorDataset
+from tqdm import tqdm
 
 from basics import to_Var, load_model
 import data_loader
@@ -29,24 +31,32 @@ import data_loader
 parser = argparse.ArgumentParser()
 parser.add_argument("model", type=str, help="Trained model to evaluate")
 parser.add_argument("dataset", type=str, help="Dataset used for training")
-parser.add_argument("subset", type=str, help="Subset to calculate the acc. on")
-parser.add_argument("-k", type=int, help="Top-k error metric (default: 1)")
+parser.add_argument("subset", type=str, help="Subset to compute the error on")
+parser.add_argument("-split", type=float, default=1/6,
+                    help="Images proportion in val (default: 1/6)")
+parser.add_argument("-k", type=int, default=1,
+                    help="Top-k error metric (default: 1)")
 args = parser.parse_args()
 
 model_name = args.model
-dataset_name = args.dataset
+dset_name = args.dataset
 subset = args.subset
-
-# Top-k error metric (default: 1)
-k = args.k if args.k else 1  # Default: Top-1
+val_split = args.split
+k = args.k
 
 
 # Loads the model
-model = load_model(dataset_name, model_name)
+model = load_model(dset_name, model_name)
 
 
 # Loads the specified subset from the dataset.
-images, labels = getattr(data_loader, subset)(dataset_name)
+images, labels = getattr(data_loader, subset)(dset_name, args.split, num_img)
+
+
+# Custom progress bar.
+def bar(data):
+    bar_format = "{percentage:3.0f}% |{bar}| {elapsed} - ETA:{remaining}"
+    return tqdm(data, ncols=74, bar_format=bar_format)
 
 
 # Computes the Top-k acccuracy of the model.
@@ -56,18 +66,17 @@ def accuracy(images, labels, k=1):
     loader = DataLoader(data, batch_size=100, shuffle=False)
     count = 0
     position = 0
-    for (x, y) in loader:
-        print(f"{position:5}/{len(images)}", end='\r')
+    for (x, y) in bar(loader):
+        # print(f"{position:5}/{len(images)}", end='\r')
         position += len(x)
         y, y_pred = to_Var(y), model.eval()(to_Var(x))
         y_pred_k = y_pred.topk(k, 1, True, True)[1]
         count += sum(sum((y_pred_k.t() == y).float())).data
         # .double(): ByteTensor sums are limited at 256.
-    print(f"{len(images):5}/{len(images)}", end='\r')
     return 100 * count / len(images)
 
 
 # Prints the losses and accuracies at the end of each epoch.
 acc = accuracy(images, labels, k)
 error = 100 - acc
-print(f"\nTop-{k} error: {error:0.2f}%")
+print(f"Top-{k} error: {error:0.2f}%")

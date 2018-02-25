@@ -4,21 +4,21 @@ The networks are defined in architectures.py
 
 ---
 
-usage: python3 train.py [-num NUM] [-val VAL] [-lr LR] [-e E] [-bs BS] [-t T]
-                        [-S] model dataset
+usage: python3 train.py [-num NUM] [-split SPLIT] [-lr LR] [-e E] [-bs BS]
+                        [-t T] [-S] model dataset
 
 positional arguments:
   model       Network architecture (defined in architectures.py)
   dataset     Dataset used for training
 
 optional arguments:
-  -num NUM    Number of images used (default: all)
-  -val VAL    Images proportion in val (default: 1/6)
-  -lr LR      Learning rate (default: specified in model class)
-  -e E        Num. of epochs (default: specified in model class)
-  -bs BS      batch size (default: specified in model class)
-  -k K        Top-k error metric (default: 1)
-  -S, --save  Saves the trained model (default: False)
+  -num NUM      Number of images used (default: all)
+  -split SPLIT  Images proportion in val (default: 1/6)
+  -lr LR        Learning rate (default: value in the model class)
+  -e E          Num. of epochs (default: value in the model class)
+  -bs BS        batch size (default: value in the model class)
+  -k K          Top-k error metric (default: 1)
+  -S, --save    Saves the trained model (default: not saved)
 """
 
 
@@ -44,25 +44,24 @@ parser.add_argument("dataset", type=str,
                     help="Dataset used for training")
 parser.add_argument("-num", type=int,
                     help="Number of images used (default: all)")
-parser.add_argument("-val", type=float,
+parser.add_argument("-split", type=float, default=1/6,
                     help="Images proportion in val (default: 1/6)")
 parser.add_argument("-lr", type=float,
-                    help="Learning rate (default: specified in model class)")
+                    help="Learning rate (default: value in the model class)")
 parser.add_argument("-e", type=int,
-                    help="Num. of epochs (default: specified in model class)")
+                    help="Num. of epochs (default: value in the model class)")
 parser.add_argument("-bs", type=int,
-                    help="batch size (default: specified in model class)")
-parser.add_argument("-k", type=int,
+                    help="batch size (default: value in the model class)")
+parser.add_argument("-k", type=int, default=1,
                     help="Top-k error metric (default: 1)")
 parser.add_argument("-S", "--save", action="store_true",
-                    help="Saves the trained model (default: False)")
+                    help="Saves the trained model (default: not saved)")
 args = parser.parse_args()
 
 model_name = args.model
 dset_name = args.dataset
 num_img = args.num
-val_split = args.val if args.val else 1/6
-k = args.k  # Top-k metric
+k = args.k
 save_model = args.save
 
 # Model instanciation
@@ -81,7 +80,7 @@ optimizer = model.optimizer
 
 
 # Loads the train databases, and splits in into train and val.
-train_images, train_labels = data_loader.train(dset_name, val_split, num_img)
+train_images, train_labels = data_loader.train(dset_name, args.split, num_img)
 val_images, val_labels = data_loader.val(dset_name, val_split, num_img)
 num_train = len(train_images)
 num_val = len(val_images)
@@ -176,9 +175,9 @@ try:
 
         # Prints the losses and accs at the end of each epoch.
         print(f"  └─> train_loss: {train_loss:6.4f}",
-              f"- train_acc: {train_acc:5.2f}%",
+              f"- train_acc@{k}: {train_acc:5.2f}%",
               f"  -   val_loss: {val_loss:6.4f}",
-              f"- val_acc: {val_acc:5.2f}%")
+              f"- val_acc@{k}: {val_acc:5.2f}%")
 
 except KeyboardInterrupt:
     pass

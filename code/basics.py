@@ -28,11 +28,12 @@ def load_architecture(model_name):
 
 
 def load_model(dataset, model_name):
-    from torch.serialization import SourceChangeWarning
     if dataset is not 'ImageNet':
         try:
             path = os.path.join("..", "models", dataset, model_name + ".pt")
             with warnings.catch_warnings():
+                # Ignores the compatibility warning between pytorch updates
+                from torch.serialization import SourceChangeWarning
                 warnings.simplefilter('ignore', SourceChangeWarning)
                 model = torch.load(path, map_location=lambda storage, loc: storage)
             if torch.cuda.is_available():

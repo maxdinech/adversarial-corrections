@@ -79,5 +79,6 @@ def val(dataset, val_split, num_images=None):
 
 
 # Loads the test images
-def test(dataset, num_test=None):
+# The unused second argument gives the same type to the three functions.
+def test(dataset, _, num_test=None):
     return load(dataset, 'test', num_test)
