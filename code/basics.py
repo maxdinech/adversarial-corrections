@@ -4,6 +4,7 @@ Basic PyTorch functions used in most of the other programs.
 
 
 import os
+import warnings
 
 import torch
 from torch.autograd import Variable
@@ -27,10 +28,13 @@ def load_architecture(model_name):
 
 
 def load_model(dataset, model_name):
+    from torch.serialization import SourceChangeWarning
     if dataset is not 'ImageNet':
         try:
             path = os.path.join("..", "models", dataset, model_name + ".pt")
-            model = torch.load(path, map_location=lambda storage, loc: storage)
+            with warnings.catch_warnings():
+                warnings.simplefilter('ignore', SourceChangeWarning)
+                model = torch.load(path, map_location=lambda storage, loc: storage)
             if torch.cuda.is_available():
                 model = model.cuda()
             return model

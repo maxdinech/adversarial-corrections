@@ -59,7 +59,7 @@ def load(dataset, subset, num_elements=None):
 
 
 # Loads ((1 - val_split) * num_images) from `train` starting at position 0
-def train(dataset, num_images, val_split):
+def train(dataset, val_split, num_images=None):
     images, labels = load(dataset, 'train', num_images)
     num_images = num_images if num_images else len(images)
     num_train = int((1-val_split) * num_images)
@@ -69,7 +69,7 @@ def train(dataset, num_images, val_split):
 
 
 # Loads (val_split * num_images) from `train` starting at position `num_train`
-def val(dataset, num_images, val_split):
+def val(dataset, val_split, num_images=None):
     images, labels = load(dataset, 'train', num_images)
     num_images = num_images if num_images else len(images)
     num_train = int((1-val_split) * num_images)

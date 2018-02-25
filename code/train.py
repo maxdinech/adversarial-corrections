@@ -17,7 +17,7 @@ optional arguments:
   -lr LR      Learning rate (default: specified in model class)
   -e E        Num. of epochs (default: specified in model class)
   -bs BS      batch size (default: specified in model class)
-  -t T        Top-k error metric (default: 1)
+  -k K        Top-k error metric (default: 1)
   -S, --save  Saves the trained model (default: False)
 """
 
@@ -42,7 +42,7 @@ parser.add_argument("model", type=str,
                     help="Network architecture (defined in architectures.py)")
 parser.add_argument("dataset", type=str,
                     help="Dataset used for training")
-parser.add_argument("-num", type=float,
+parser.add_argument("-num", type=int,
                     help="Number of images used (default: all)")
 parser.add_argument("-val", type=float,
                     help="Images proportion in val (default: 1/6)")
@@ -52,7 +52,7 @@ parser.add_argument("-e", type=int,
                     help="Num. of epochs (default: specified in model class)")
 parser.add_argument("-bs", type=int,
                     help="batch size (default: specified in model class)")
-parser.add_argument("-t", type=int,
+parser.add_argument("-k", type=int,
                     help="Top-k error metric (default: 1)")
 parser.add_argument("-S", "--save", action="store_true",
                     help="Saves the trained model (default: False)")
@@ -62,6 +62,7 @@ model_name = args.model
 dset_name = args.dataset
 num_img = args.num
 val_split = args.val if args.val else 1/6
+k = args.k  # Top-k metric
 save_model = args.save
 
 # Model instanciation
@@ -80,8 +81,8 @@ optimizer = model.optimizer
 
 
 # Loads the train databases, and splits in into train and val.
-train_images, train_labels = data_loader.train(dset_name, num_img, val_split)
-val_images, val_labels = data_loader.val(dset_name, num_img, val_split)
+train_images, train_labels = data_loader.train(dset_name, val_split, num_img)
+val_images, val_labels = data_loader.val(dset_name, val_split, num_img)
 num_train = len(train_images)
 num_val = len(val_images)
 
@@ -98,26 +99,14 @@ num_batches = len(train_loader)
 # (computing the accuracy mini-batch after mini-batch avoids memory overload)
 def accuracy(images, labels, k=1):
     data = TensorDataset(images, labels)
-    loader = DataLoader(data, batch_size=100, shuffle=False)
+    loader = DataLoader(data, batch_size=10, shuffle=False)
     count = 0
     for (x, y) in loader:
         y, y_pred = to_Var(y), model.eval()(to_Var(x))
-        count += (y_pred.max(1)[1] == y).double().data.sum()
+        y_pred_k = y_pred.topk(k, 1, True, True)[1]
+        count += sum(sum((y_pred_k.t() == y).float())).data
         # .double(): ByteTensor sums are limited at 256.
     return 100 * count / len(images)
-
-
-# Computes the precision@k for the specified values of k
-def accuracy(images, labels, topk=(1,)):
-    batch_size = labels.size(0)
-
-    _, pred = images.topk(k, 1, True, True)
-    pred = pred.t()
-    correct = pred.eq(labels.view(1, -1).expand_as(pred))
-
-    correct_k = correct[:k].view(-1).float().sum(0, keepdim=True)
-    return correct_k.mul_(100.0 / batch_size)
-
 
 
 # Computes the loss of the model.
@@ -128,7 +117,7 @@ def big_loss(images, labels):
     count = 0
     for (x, y) in loader:
         y, y_pred = to_Var(y), model.eval()(to_Var(x))
-        count += len(x) * loss_fn(y_pred, y).data[0]
+        count += len(x) * loss_fn(y_pred, y).data.item()
     return count / len(images)
 
 
@@ -151,7 +140,7 @@ def bar(data, e):
     left = "{desc}: {percentage:3.0f}%"
     right = "{elapsed} - ETA:{remaining} - {rate_fmt}"
     bar_format = left + " |{bar}| " + right
-    return tqdm(data, desc=epoch, ncols=100, unit='b', bar_format=bar_format)
+    return tqdm(data, desc=epoch, ncols=74, unit='b', bar_format=bar_format)
 
 
 train_accs, val_accs = [], []
@@ -174,13 +163,13 @@ try:
             optimizer.step()
 
         # Calculates accuracy and loss on the train database.
-        train_acc = accuracy(train_images, train_labels)
+        train_acc = accuracy(train_images, train_labels, k)
         train_loss = big_loss(train_images, train_labels)
         train_accs.append(train_acc)
         train_losses.append(train_loss)
 
         # Calculates accuracy and loss on the validation database.
-        val_acc = accuracy(val_images, val_labels)
+        val_acc = accuracy(val_images, val_labels, k)
         val_loss = big_loss(val_images, val_labels)
         val_accs.append(val_acc)
         val_losses.append(val_loss)
